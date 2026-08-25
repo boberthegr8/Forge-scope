@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forge Scope — Estimator Intake</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: Inter, sans-serif; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .fade-in { animation: fadeIn .18s ease-out; }
+    @keyframes fadeIn { from { opacity:.4; transform:translateY(2px);} to {opacity:1; transform:none;} }
+    @media print {
+      aside, header, .no-print { display:none !important; }
+      main { overflow: visible !important; }
+      #content { padding:0 !important; background:white !important; }
+      .print-card { box-shadow:none !important; border-color:#e2e8f0 !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased">
+  <div id="app" class="h-screen flex overflow-hidden"></div>
+
+<script>
+const STATUS_OPTIONS = ['Confirmed','Salesperson','Assumption','RFI','Verify'];
+const TYPES = {
+  barn: { label:'Barn', icon:'warehouse', description:'Agricultural, post-frame, stud-frame and hybrid buildings' },
+  shed: { label:'Shed', icon:'home', description:'Accessory buildings, garages and small structures' },
+  deck: { label:'Deck', icon:'panel-top', description:'Deck framing, footings, stairs, decking and railing' }
+};
+
+const COMMON_PROJECT = [
+  {key:'projectName', label:'Project Name', placeholder:'Kott-Gabeleton Farms Beef Barn'},
+  {key:'customer', label:'Customer / Contractor', placeholder:'Customer or contractor'},
+  {key:'salesperson', label:'Salesperson', placeholder:'Salesperson name'},
+  {key:'projectAddress', label:'Project Address / Municipality', placeholder:'Address, city, municipality'},
+  {key:'estimator', label:'Estimator', placeholder:'Estimator name'},
+  {key:'quoteDue', label:'Quote Due Date', type:'date'},
+  {key:'drawingDate', label:'Drawing Revision / Date', placeholder:'Rev 0 — 2026-06-25'},
+  {key:'drawingStatus', label:'Drawing Status', type:'select', options:['Preliminary','Engineering Review','Permit','Tender','Construction','As-Built']},
+  {key:'scopeRequested', label:'Scope Requested', type:'textarea', placeholder:'What are we being asked to quote?'},
+  {key:'scopeExcluded', label:'Explicit Exclusions', type:'textarea', placeholder:'Items specifically excluded from our quote'}
+];
+
+const SCHEMAS = {
+ barn: [
+  {title:'Project Intake', icon:'clipboard-list', fields:COMMON_PROJECT},
+  {title:'Building Classification', icon:'warehouse', fields:[
+    {key:'projectCondition',label:'Project Condition',type:'select',options:['New Building','Addition','Renovation']},
+    {key:'buildingUse',label:'Building Use',placeholder:'Beef barn, equipment storage, horse barn, etc.'},
+    {key:'environment',label:'Environment',type:'select',options:['Unheated','Heated','Partially Heated','Open','Partially Enclosed','Enclosed']},
+    {key:'framingSystem',label:'Primary Framing System',type:'select',options:['Post Frame / Pole Barn','Stud Frame','Hybrid Post + Stud','Timber Frame','Steel Frame','Other']},
+    {key:'interiorBearing',label:'Interior Structural Bearing',placeholder:'Posts, beams, bearing wall lines, none'},
+    {key:'storeys',label:'Storeys',placeholder:'1 storey'},
+  ]},
+  {title:'Building Geometry', icon:'ruler', fields:[
+    {key:'mainWidth',label:'Main Building Width',placeholder:'60\''},
+    {key:'mainLength',label:'Main Building Length',placeholder:'120\''},
+    {key:'overallFootprint',label:'Overall Footprint / Extensions',placeholder:'160\' overall including manure storage'},
+    {key:'wallHeight',label:'Main Wall / Bearing Height',placeholder:'16\'-4 1/2"'},
+    {key:'ridgeHeight',label:'Ridge Height',placeholder:'If shown'},
+    {key:'floorElevation',label:'Finished Floor Elevation',placeholder:'0" / datum'},
+    {key:'gradeChanges',label:'Grade / Elevation Changes',placeholder:'Retaining condition, stepped grade, etc.'},
+    {key:'attachedAreas',label:'Attached Rooms / Lean-tos / Extensions',type:'textarea',placeholder:'Vet room, lean-to, manure storage, etc.'},
+    {key:'gableEnds',label:'Gable Ends',placeholder:'2 — North and South'},
+    {key:'gableConstruction',label:'Gable-End Construction',placeholder:'Stud framed / post framed / structural gable'},
+    {key:'gableOverhang',label:'Gable Overhang',placeholder:'12" / 16" / none'},
+  ]},
+  {title:'Foundation', icon:'layers-3', fields:[
+    {key:'foundationSystem',label:'Foundation System',type:'textarea',placeholder:'Continuous wall + strip footing / embedded posts / hybrid'},
+    {key:'foundationTags',label:'Foundation Tags / Conditions',placeholder:'CW1, CW2, CW3, CW4, RW1'},
+    {key:'foundationWall',label:'Foundation Wall',placeholder:'8" poured concrete'},
+    {key:'foundationHeight',label:'Foundation / Curb Heights',placeholder:'2\', 4\', 5\', etc.'},
+    {key:'footing',label:'Footing',placeholder:'24" x 8" strip footing'},
+    {key:'slab',label:'Slab',placeholder:'6" concrete on 6" Granular A'},
+    {key:'thickenedEdge',label:'Thickened Slab Edge',placeholder:'8" x 24" continuous'},
+    {key:'retainingWall',label:'Retaining / Manure Wall',placeholder:'RW1 — describe'},
+    {key:'sillPlate',label:'Sill Plate',placeholder:'PT sill plate + gasket'},
+    {key:'anchorBolts',label:'Anchor Bolts',placeholder:'1/2" @ 48" o.c.'},
+    {key:'postBase',label:'Post Base / Embedment',placeholder:'Wet-set bracket / embedded / Simpson model'},
+    {key:'doorDrops',label:'Foundation Drops at Openings',placeholder:'Drop wall 6" below FFL at door openings'},
+  ]},
+  {title:'Wall Framing', icon:'columns-3', fields:[
+    {key:'sidewallFraming',label:'Sidewall Framing',placeholder:'2x6 studs @ 16" o.c.'},
+    {key:'endwallFraming',label:'Endwall Framing',placeholder:'2x6 studs @ 24" o.c.'},
+    {key:'posts',label:'Structural Posts / Columns',placeholder:'6x8 PT @ 8\' o.c.'},
+    {key:'topBeam',label:'Top Beam / Plate Condition',placeholder:'Double top plate / multi-ply beam / ledger'},
+    {key:'wallStrapping',label:'Wall Strapping / Girts',placeholder:'2x4 @ 24" o.c.'},
+    {key:'blocking',label:'Blocking',placeholder:'Solid blocking @ 48" o.c. above 9\'-6"'},
+    {key:'shearwalls',label:'Shearwalls',type:'textarea',placeholder:'Locations, plywood thickness and nailing'},
+    {key:'windBracing',label:'Wind / X Bracing',placeholder:'Describe bracing requirements'},
+    {key:'curtainWalls',label:'Curtain / Open Walls',placeholder:'88\' curtain wall, by others'},
+    {key:'interiorWalls',label:'Interior Structural Walls',placeholder:'Bearing / shear / non-bearing notes'},
+  ]},
+  {title:'Roof / MiTek Handoff', icon:'triangle', fields:[
+    {key:'roofType',label:'Main Roof Type',type:'select',options:['Gable','Mono-Slope','Hip','Gambrel','Other']},
+    {key:'trussSpan',label:'Truss Span / Bearing-to-Bearing',placeholder:'60\'-0"'},
+    {key:'roofPitch',label:'Roof Pitch',placeholder:'4/12'},
+    {key:'trussSpacing',label:'Truss Spacing',placeholder:'48" o.c.'},
+    {key:'bearingHeight',label:'U/S Truss / Bearing Height',placeholder:'16\'-4 1/2"'},
+    {key:'heelHeight',label:'Heel Height',placeholder:'If specified'},
+    {key:'eaveOverhang',label:'Eave Overhang',placeholder:'Left / right overhang'},
+    {key:'gableRoofOverhang',label:'Gable Overhang / Dropped Gable',placeholder:'Overhang + dropped gable requirement'},
+    {key:'internalBearings',label:'Internal Bearing Points',type:'textarea',placeholder:'Posts / beams / ledgers / bearing walls'},
+    {key:'trussTypes',label:'Special Truss Types',type:'textarea',placeholder:'Gables, dropped gables, girders, mono, valleys, etc.'},
+    {key:'attachedRoofs',label:'Attached Roof Systems',type:'textarea',placeholder:'Vet room mono-slope, lean-to, canopy, etc.'},
+    {key:'roofDeadLoad',label:'Roof / Ceiling Dead Load',placeholder:'0.55 kPa ceiling'},
+    {key:'balancedSnow',label:'Balanced Snow Load',placeholder:'1.34 kPa'},
+    {key:'unbalancedSnow',label:'Unbalanced Snow Load',placeholder:'1.87 kPa'},
+    {key:'otherLoads',label:'Other / Concentrated Loads',type:'textarea',placeholder:'Solar, mechanical, storage, sprinkler, point loads'},
+    {key:'slipperyRoof',label:'Slippery Roof / Snow Guard Condition',placeholder:'Slippery roof; no snow guards'},
+    {key:'uplift',label:'Uplift / Connection Requirements',placeholder:'Uplift clips by truss supplier'},
+    {key:'trussBracing',label:'Truss Bracing',type:'textarea',placeholder:'X-bracing, lateral bracing, bottom chord bracing'},
+    {key:'shopDrawings',label:'Shop Drawing Requirement',placeholder:'P.Eng stamped shop drawings required'},
+  ]},
+  {title:'Roof & Wall Materials', icon:'package-open', fields:[
+    {key:'roofDeck',label:'Roof Sheathing / Strapping',placeholder:'2x4 @ 24" o.c.'},
+    {key:'roofing',label:'Roofing',placeholder:'29 ga prefinished steel roofing'},
+    {key:'ridgeVent',label:'Ridge / Roof Venting',placeholder:'Continuous ridge vent / roof vents by others'},
+    {key:'soffitFascia',label:'Soffit / Fascia / Eavestrough',placeholder:'Prefinished metal fascia, vented soffit, eavestrough'},
+    {key:'roofInsulation',label:'Roof Insulation / Vapour Barrier',placeholder:'R40 blown-in + 6 mil poly'},
+    {key:'interiorCeiling',label:'Interior Ceiling / Liner',placeholder:'1x4 strapping + liner'},
+    {key:'wallCladding',label:'Exterior Wall Cladding',placeholder:'29 ga prefinished metal'},
+    {key:'airBarrier',label:'Air / Weather Barrier',placeholder:'Typar, taped joints'},
+    {key:'wallInsulation',label:'Wall Insulation',placeholder:'If applicable'},
+    {key:'itemsByOthers',label:'Items By Owner / Others',type:'textarea',placeholder:'Curtains, roof vents, gates, penning, etc.'},
+  ]},
+  {title:'Assumptions, RFIs & QC', icon:'shield-check', fields:[
+    {key:'assumptions',label:'Estimator Assumptions',type:'textarea',placeholder:'List anything assumed for quote'},
+    {key:'rfi',label:'RFIs / Missing Information',type:'textarea',placeholder:'Information needed before final quote'},
+    {key:'conflicts',label:'Drawing Conflicts',type:'textarea',placeholder:'Conflicting dimensions/details/revisions'},
+    {key:'finalNotes',label:'Final Estimator Notes',type:'textarea',placeholder:'Anything the salesperson should know'},
+  ]}
+ ],
+ shed: [
+  {title:'Project Intake', icon:'clipboard-list', fields:COMMON_PROJECT},
+  {title:'Geometry', icon:'ruler', fields:[
+    {key:'mainWidth',label:'Width',placeholder:'16\''},{key:'mainLength',label:'Length',placeholder:'20\''},{key:'wallHeight',label:'Wall Height',placeholder:'8\''},
+    {key:'overallHeight',label:'Overall Height',placeholder:'To ridge'}, {key:'roofType',label:'Roof Type',type:'select',options:['Gable','Mono-Slope','Hip','Gambrel','Other']},
+    {key:'roofPitch',label:'Roof Pitch',placeholder:'4/12'}, {key:'eaveOverhang',label:'Eave Overhang',placeholder:'12"'}, {key:'gableOverhang',label:'Gable Overhang',placeholder:'12"'},
+    {key:'loft',label:'Loft / Mezzanine',placeholder:'None / size and height'}
+  ]},
+  {title:'Foundation', icon:'layers-3', fields:[
+    {key:'foundationSystem',label:'Foundation Type',type:'select',options:['Skids','Concrete Piers','Helical Piles','Slab-on-Grade','Thickened Slab','Foundation Wall','Other']},
+    {key:'foundationDetails',label:'Foundation Details',type:'textarea',placeholder:'Sizes, spacing, depth, anchors'},
+    {key:'slab',label:'Slab',placeholder:'Thickness and base'}
+  ]},
+  {title:'Framing', icon:'columns-3', fields:[
+    {key:'wallFraming',label:'Wall Studs',placeholder:'2x4 @ 16" o.c.'},{key:'plates',label:'Wall Plates',placeholder:'Bottom + double top'},
+    {key:'wallSheathing',label:'Wall Sheathing',placeholder:'7/16 OSB / Smart Panel'}, {key:'roofFraming',label:'Trusses / Rafters',placeholder:'2x10 rafters @ 16" / trusses @ 24"'},
+    {key:'roofSheathing',label:'Roof Sheathing / Strapping',placeholder:'1/2" OSB / 2x4 strapping'}, {key:'headers',label:'Headers / Lintels',type:'textarea',placeholder:'Opening and header sizes'},
+    {key:'loftFraming',label:'Loft Floor Framing',placeholder:'If applicable'}
+  ]},
+  {title:'Finishes', icon:'package-open', fields:[
+    {key:'roofing',label:'Roofing',placeholder:'Shingles / steel'}, {key:'siding',label:'Siding',placeholder:'LP SmartSide / vinyl / steel'},
+    {key:'soffitFascia',label:'Soffit / Fascia',placeholder:'Material and size'}, {key:'insulation',label:'Insulation',placeholder:'If applicable'},
+    {key:'interiorFinish',label:'Interior Finish',placeholder:'Drywall / liner / none'}, {key:'trim',label:'Exterior Trim',placeholder:'Corners, J, starter, etc.'}
+  ]},
+  {title:'Assumptions, RFIs & QC', icon:'shield-check', fields:[
+    {key:'assumptions',label:'Estimator Assumptions',type:'textarea'},{key:'rfi',label:'RFIs / Missing Information',type:'textarea'},
+    {key:'conflicts',label:'Drawing Conflicts',type:'textarea'},{key:'finalNotes',label:'Final Estimator Notes',type:'textarea'}
+  ]}
+ ],
+ deck: [
+  {title:'Project Intake', icon:'clipboard-list', fields:COMMON_PROJECT},
+  {title:'Geometry', icon:'ruler', fields:[
+    {key:'deckWidth',label:'Deck Width',placeholder:'24\''},{key:'deckProjection',label:'Deck Projection',placeholder:'12\''},{key:'deckHeight',label:'Deck Height Above Grade',placeholder:'6\'-8"'},
+    {key:'deckShape',label:'Shape / Offsets',type:'textarea',placeholder:'Main rectangle plus bump-outs / angles'}, {key:'multiLevel',label:'Multiple Levels',placeholder:'Describe'},
+    {key:'existingStructure',label:'Existing Structure / Attachment',placeholder:'House wall, patio door, existing beam, etc.'}
+  ]},
+  {title:'Support System', icon:'columns-3', fields:[
+    {key:'attachment',label:'Ledger / Freestanding',type:'select',options:['Ledger Attached','Freestanding','Hybrid']}, {key:'ledger',label:'Ledger Size / Attachment',placeholder:'2x10 with structural screws'},
+    {key:'flashing',label:'Ledger Flashing',placeholder:'Membrane / metal flashing'}, {key:'posts',label:'Posts',placeholder:'6x6 — locations / heights'},
+    {key:'beams',label:'Beams',placeholder:'(3)-2x10 — spans and cantilevers'}, {key:'joists',label:'Joists',placeholder:'2x10 @ 16" o.c.'},
+    {key:'joistSpan',label:'Joist Span / Direction',placeholder:'Span and direction'}, {key:'cantilevers',label:'Cantilevers',placeholder:'Joist and beam cantilevers'}
+  ]},
+  {title:'Footings', icon:'circle-dot', fields:[
+    {key:'footingType',label:'Footing Type',type:'select',options:['Concrete Pier','Helical Pile','Existing Footing','Other']},
+    {key:'footingSize',label:'Footing Size / Depth',placeholder:'12" dia x 48" min.'}, {key:'footingCount',label:'Footing Count',placeholder:'6'}, {key:'footingLayout',label:'Footing Locations',type:'textarea',placeholder:'Grid / spacing'}
+  ]},
+  {title:'Decking', icon:'panel-top', fields:[
+    {key:'deckingBrand',label:'Decking Brand / Product',placeholder:'TimberTech Terrain+'}, {key:'deckingColor',label:'Colour',placeholder:'Dark Cocoa'},
+    {key:'boardDirection',label:'Board Direction',placeholder:'Parallel to house / diagonal'}, {key:'pictureFrame',label:'Picture Frame / Breaker Boards',placeholder:'Describe'},
+    {key:'fasteners',label:'Fastener System',placeholder:'Hidden fasteners'}, {key:'fascia',label:'Fascia',placeholder:'Product / sizes'}
+  ]},
+  {title:'Stairs & Railing', icon:'move-up-right', fields:[
+    {key:'stairLocations',label:'Stair Locations / Quantity',placeholder:'1 main stair'}, {key:'stairWidth',label:'Stair Width',placeholder:'48"'},
+    {key:'totalRise',label:'Total Rise',placeholder:'80"'}, {key:'stringers',label:'Stringers',placeholder:'2x12 — quantity'}, {key:'landing',label:'Landing',placeholder:'Size / framing'},
+    {key:'railingSystem',label:'Railing System',placeholder:'TimberTech Impressions Rail Express'}, {key:'railingLength',label:'Railing Length',placeholder:'Total LF / segment breakdown'},
+    {key:'corners',label:'Corners / Angles',placeholder:'90° / 45° locations'}, {key:'gates',label:'Gates',placeholder:'Quantity / width'},
+    {key:'drinkRail',label:'Drink Rail',placeholder:'Yes / product'}, {key:'lighting',label:'Lighting',placeholder:'Post cap / riser / perimeter'}
+  ]},
+  {title:'Special Conditions', icon:'scan-search', fields:[
+    {key:'obstacles',label:'Doors / Windows / Wells / Utilities',type:'textarea',placeholder:'List obstacles and locations'},
+    {key:'loads',label:'Hot Tub / Roof / Concentrated Loads',type:'textarea',placeholder:'Any special loads'},
+    {key:'waterproofing',label:'Waterproof Area Below',placeholder:'Yes / no / system'},
+    {key:'assumptions',label:'Estimator Assumptions',type:'textarea'}, {key:'rfi',label:'RFIs / Missing Information',type:'textarea'},
+    {key:'finalNotes',label:'Final Estimator Notes',type:'textarea'}
+  ]}
+ ]
+};
+
+const OPENING_FIELDS = [
+  {key:'wall',label:'Wall / Elevation',placeholder:'North Gable'},
+  {key:'type',label:'Opening Type',type:'select',options:['Overhead Door','Sliding Door','Personnel Door','Window','Curtain Opening','Ventilation Opening','Equipment Opening','Other']},
+  {key:'width',label:'Width',placeholder:'22\'-0"'}, {key:'height',label:'Height',placeholder:'14\'-0"'},
+  {key:'location',label:'Location / Reference',placeholder:'37\'-8" from west corner'}, {key:'header',label:'Header / Lintel',placeholder:'L4 — (3)-2x12'},
+  {key:'framing',label:'Jacks / Kings / Posts',placeholder:'3 jack + 3 king'}, {key:'foundationDrop',label:'Foundation Drop',placeholder:'6" below FFL'},
+  {key:'source',label:'Source',placeholder:'S2.0 / S3.0'}
+];
+
+function emptyField(){ return { value:'', source:'', status:'Confirmed', reviewed:false }; }
+function newProject(type='barn', mode='manual'){
+  const fields={};
+  SCHEMAS[type].flatMap(s=>s.fields).forEach(f=>fields[f.key]=emptyField());
+  return { id:'scope_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), type, mode, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), fields, openings:[] };
+}
+
+let saved = JSON.parse(localStorage.getItem('forgeScopeProjects') || '[]');
+let current = null;
+let view = 'dashboard';
+let searchTerm = '';
+
+function persist(){ localStorage.setItem('forgeScopeProjects', JSON.stringify(saved)); }
+function upsertCurrent(){
+  if(!current) return;
+  current.updatedAt = new Date().toISOString();
+  const idx=saved.findIndex(p=>p.id===current.id);
+  if(idx>=0) saved[idx]=JSON.parse(JSON.stringify(current)); else saved.unshift(JSON.parse(JSON.stringify(current)));
+  persist();
+}
+function fmtDate(v){ if(!v) return '—'; return new Date(v).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}); }
+function esc(s=''){ return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+function icon(name,cls='w-5 h-5'){ return `<i data-lucide="${name}" class="${cls}"></i>`; }
+
+function layout(content){
+  return `
+  <aside class="w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col shadow-2xl no-print">
+    <div class="p-7 border-b border-slate-800">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-indigo-600 rounded-xl grid place-items-center shadow-lg shadow-indigo-950/30">${icon('clipboard-check','w-6 h-6')}</div>
+        <div><div class="font-extrabold tracking-tight text-xl">FORGE</div><div class="text-[10px] uppercase tracking-[.24em] text-slate-500 font-bold">Scope</div></div>
+      </div>
+    </div>
+    <nav class="p-4 space-y-1 flex-1">
+      ${navBtn('dashboard','layout-dashboard','Dashboard')}
+      ${navBtn('new','plus-circle','New Scope')}
+      ${navBtn('saved','folder-open','Saved Scopes', saved.length ? saved.length : '')}
+      <div class="pt-5 pb-2 px-4 text-[10px] font-bold uppercase tracking-[.2em] text-slate-500">Templates</div>
+      ${navBtn('barns','warehouse','Barns')}
+      ${navBtn('sheds','home','Sheds')}
+      ${navBtn('decks','panel-top','Decks')}
+      <div class="pt-5 pb-2 px-4 text-[10px] font-bold uppercase tracking-[.2em] text-slate-500">AI</div>
+      ${navBtn('ai','sparkles','AI Import')}
+    </nav>
+    <div class="p-4 border-t border-slate-800 text-xs text-slate-500">Forge Suite • Estimator Intake</div>
+  </aside>
+  <main class="flex-1 min-w-0 flex flex-col overflow-hidden">
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 no-print">
+      <div><h1 class="font-bold text-slate-800">${pageTitle()}</h1><p class="text-xs text-slate-500">Capture it once. Quote it right.</p></div>
+      <div class="flex items-center gap-3">
+        ${current && (view==='editor'||view==='summary'||view==='ai') ? `<span class="hidden lg:inline text-xs text-slate-500">${esc(current.fields.projectName?.value || 'Untitled Scope')}</span><button onclick="saveCurrent()" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-semibold flex items-center gap-2">${icon('save','w-4 h-4')} Save</button>`:''}
+      </div>
+    </header>
+    <div id="content" class="flex-1 overflow-y-auto p-8 bg-slate-50/70">${content}</div>
+  </main>`;
+}
+function pageTitle(){ return ({dashboard:'Dashboard',new:'New Scope',saved:'Saved Scopes',barns:'Barn Templates',sheds:'Shed Templates',decks:'Deck Templates',editor:'Scope Worksheet',summary:'Scope Summary',ai:'AI Assisted Entry'})[view] || 'Forge Scope'; }
+function navBtn(target,ic,label,badge=''){
+  const active = view===target || (target==='ai'&&view==='ai');
+  return `<button onclick="go('${target}')" class="w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm transition ${active?'bg-slate-800 text-white':'text-slate-400 hover:text-white hover:bg-slate-800/60'}"><span class="flex items-center gap-3">${icon(ic)}<span class="font-medium">${label}</span></span>${badge?`<span class="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">${badge}</span>`:''}</button>`;
+}
+
+function render(){
+  let content='';
+  if(view==='dashboard') content=dashboardView();
+  else if(view==='new') content=newView();
+  else if(view==='saved') content=savedView();
+  else if(view==='barns') content=templateView('barn');
+  else if(view==='sheds') content=templateView('shed');
+  else if(view==='decks') content=templateView('deck');
+  else if(view==='editor') content=editorView();
+  else if(view==='summary') content=summaryView();
+  else if(view==='ai') content=aiView();
+  document.getElementById('app').innerHTML=layout(content);
+  lucide.createIcons();
+}
+
+function dashboardView(){
+  const recent=[...saved].sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt)).slice(0,5);
+  return `<div class="max-w-7xl mx-auto fade-in">
+    <div class="grid md:grid-cols-3 gap-5 mb-8">
+      ${metric('Saved Scopes',saved.length,'folder-open','All estimator worksheets')}
+      ${metric('Barns',saved.filter(p=>p.type==='barn').length,'warehouse','Agricultural scopes')}
+      ${metric('Needs Attention',saved.filter(p=>Object.values(p.fields||{}).some(f=>f.status==='RFI'||f.status==='Verify')).length,'triangle-alert','Contains RFI / Verify fields')}
+    </div>
+    <div class="grid lg:grid-cols-[1.3fr_.7fr] gap-6">
+      <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between"><div><h2 class="font-bold text-lg">Recent Scopes</h2><p class="text-sm text-slate-500">Pick up where you left off.</p></div><button onclick="go('new')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">${icon('plus','w-4 h-4')} New Scope</button></div>
+        <div>${recent.length?recent.map(projectRow).join(''):`<div class="p-10 text-center text-slate-500">No saved scopes yet. Create your first Barn, Shed or Deck worksheet.</div>`}</div>
+      </section>
+      <section class="bg-slate-900 text-white rounded-2xl p-6 shadow-sm">
+        <div class="w-11 h-11 bg-indigo-600 rounded-xl grid place-items-center mb-5">${icon('sparkles','w-6 h-6')}</div>
+        <h2 class="font-bold text-xl mb-2">Manual + AI</h2><p class="text-sm leading-6 text-slate-300 mb-6">Use the same worksheet either way. Enter fields manually, or download the Forge AI prompt and paste structured results back in.</p>
+        <button onclick="startNew('barn','ai')" class="w-full bg-white text-slate-900 rounded-lg px-4 py-3 font-semibold text-sm">Start AI-Assisted Barn</button>
+      </section>
+    </div>
+  </div>`;
+}
+function metric(label,value,ic,sub){ return `<div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"><div class="flex items-start justify-between"><div><div class="text-sm text-slate-500 font-medium">${label}</div><div class="text-3xl font-extrabold mt-2">${value}</div><div class="text-xs text-slate-400 mt-2">${sub}</div></div><div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 grid place-items-center">${icon(ic)}</div></div></div>`; }
+function projectRow(p){
+  const name=p.fields?.projectName?.value || 'Untitled Scope'; const customer=p.fields?.customer?.value || '';
+  const alerts=Object.values(p.fields||{}).filter(f=>f.status==='RFI'||f.status==='Verify').length;
+  return `<div class="px-6 py-4 border-b border-slate-100 last:border-b-0 flex items-center gap-4 hover:bg-slate-50"><div class="w-10 h-10 bg-slate-100 rounded-xl grid place-items-center text-slate-500">${icon(TYPES[p.type]?.icon||'file-text')}</div><div class="flex-1 min-w-0"><div class="font-semibold truncate">${esc(name)}</div><div class="text-xs text-slate-500 mt-1">${TYPES[p.type]?.label} ${customer?'• '+esc(customer):''} • Updated ${fmtDate(p.updatedAt)}</div></div>${alerts?`<span class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full font-semibold">${alerts} verify</span>`:''}<button onclick="openProject('${p.id}')" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">Open</button></div>`;
+}
+
+function newView(){
+ return `<div class="max-w-5xl mx-auto fade-in"><div class="mb-8"><h2 class="text-2xl font-extrabold">What are you scoping?</h2><p class="text-slate-500 mt-2">Choose a template, then choose manual or AI-assisted entry.</p></div>
+ <div class="grid md:grid-cols-3 gap-5 mb-8">${Object.entries(TYPES).map(([k,t])=>`<div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"><div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl grid place-items-center mb-5">${icon(t.icon,'w-7 h-7')}</div><h3 class="text-xl font-bold">${t.label}</h3><p class="text-sm text-slate-500 mt-2 min-h-10">${t.description}</p><div class="grid grid-cols-2 gap-2 mt-6"><button onclick="startNew('${k}','manual')" class="px-3 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-semibold">Manual</button><button onclick="startNew('${k}','ai')" class="px-3 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold">AI Assisted</button></div></div>`).join('')}</div>
+ <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 flex gap-4"><div class="text-indigo-600">${icon('info')}</div><div><div class="font-semibold text-indigo-950">Both paths use the same worksheet.</div><p class="text-sm text-indigo-800 mt-1">AI Assisted only changes how the fields get populated. The estimator still reviews, edits and confirms the same data before generating the summary.</p></div></div></div></div>`;
+}
+
+function templateView(type){
+ return `<div class="max-w-5xl mx-auto fade-in"><div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm"><div class="flex items-start gap-5"><div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl grid place-items-center">${icon(TYPES[type].icon,'w-8 h-8')}</div><div class="flex-1"><h2 class="text-2xl font-extrabold">${TYPES[type].label} Scope</h2><p class="text-slate-500 mt-2">${SCHEMAS[type].length} structured sections. Every item has a reviewed checkbox, value field, source field and confidence/status.</p><div class="flex gap-3 mt-6"><button onclick="startNew('${type}','manual')" class="bg-slate-900 text-white px-5 py-3 rounded-lg font-semibold">Start Manual</button><button onclick="startNew('${type}','ai')" class="bg-indigo-600 text-white px-5 py-3 rounded-lg font-semibold">Start AI Assisted</button></div></div></div></div></div>`;
+}
+
+function savedView(){
+ const filtered=saved.filter(p=>{const n=(p.fields?.projectName?.value||'')+' '+(p.fields?.customer?.value||''); return n.toLowerCase().includes(searchTerm.toLowerCase());});
+ return `<div class="max-w-7xl mx-auto fade-in"><div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6"><div><h2 class="text-2xl font-extrabold">Saved Scopes</h2><p class="text-slate-500 mt-1">Stored in this browser for now.</p></div><div class="relative">${icon('search','w-4 h-4 absolute left-3 top-3 text-slate-400')}<input value="${esc(searchTerm)}" oninput="searchTerm=this.value; render()" placeholder="Search projects..." class="pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg w-72 text-sm outline-none focus:ring-2 focus:ring-indigo-500"></div></div>
+ <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">${filtered.length?filtered.map(p=>`<div class="p-5 border-b border-slate-100 last:border-0 flex items-center gap-4"><div class="w-11 h-11 rounded-xl bg-slate-100 grid place-items-center text-slate-500">${icon(TYPES[p.type].icon)}</div><div class="flex-1 min-w-0"><div class="font-semibold">${esc(p.fields?.projectName?.value||'Untitled Scope')}</div><div class="text-xs text-slate-500 mt-1">${TYPES[p.type].label} • ${p.mode==='ai'?'AI Assisted':'Manual'} • Updated ${fmtDate(p.updatedAt)}</div></div><button onclick="duplicateProject('${p.id}')" class="p-2 text-slate-500 hover:text-indigo-600" title="Duplicate">${icon('copy')}</button><button onclick="openProject('${p.id}')" class="px-4 py-2 bg-slate-100 rounded-lg text-sm font-semibold">Open</button><button onclick="deleteProject('${p.id}')" class="p-2 text-slate-400 hover:text-rose-600" title="Delete">${icon('trash-2')}</button></div>`).join(''):`<div class="p-12 text-center text-slate-500">No matching scopes.</div>`}</div></div>`;
+}
+
+function editorView(){
+ if(!current) return `<div>No project selected.</div>`;
+ const sections=SCHEMAS[current.type];
+ const reviewed=Object.values(current.fields).filter(f=>f.reviewed).length; const filled=Object.values(current.fields).filter(f=>String(f.value||'').trim()).length; const total=Object.keys(current.fields).length;
+ return `<div class="max-w-[1500px] mx-auto fade-in">
+  <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-6 shadow-sm sticky top-0 z-10 no-print"><div class="flex flex-col xl:flex-row xl:items-center gap-4 justify-between"><div><div class="flex items-center gap-2"><span class="text-xs font-bold uppercase tracking-wider text-indigo-600">${TYPES[current.type].label}</span><span class="text-xs px-2 py-1 rounded-full ${current.mode==='ai'?'bg-violet-50 text-violet-700':'bg-slate-100 text-slate-600'}">${current.mode==='ai'?'AI Assisted':'Manual'}</span></div><h2 class="font-extrabold text-xl mt-1">${esc(current.fields.projectName?.value || 'Untitled Scope')}</h2></div><div class="flex flex-wrap gap-2"><span class="px-3 py-2 bg-slate-50 rounded-lg text-xs font-semibold">${filled}/${total} filled</span><span class="px-3 py-2 bg-slate-50 rounded-lg text-xs font-semibold">${reviewed} reviewed</span>${current.mode==='ai'?`<button onclick="view='ai';render()" class="px-4 py-2 rounded-lg bg-violet-100 text-violet-700 font-semibold text-sm flex items-center gap-2">${icon('sparkles','w-4 h-4')} AI Import</button>`:''}<button onclick="downloadAIPrompt()" class="px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700 font-semibold text-sm flex items-center gap-2">${icon('download','w-4 h-4')} AI Prompt</button></div></div></div>
+  <div class="space-y-6">${sections.map((s,i)=>sectionCard(s,i)).join('')}
+    <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">${openingSection()}</section>
+  </div>
+  <div class="mt-8 bg-slate-900 text-white rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 no-print"><div><h3 class="font-bold text-lg">Finished reviewing the scope?</h3><p class="text-sm text-slate-400 mt-1">Blank fields are automatically removed from the summary.</p></div><button onclick="generateSummary()" class="bg-indigo-600 hover:bg-indigo-500 px-7 py-4 rounded-xl font-extrabold flex items-center justify-center gap-2 tracking-wide">ENTER — GENERATE SUMMARY ${icon('arrow-right','w-5 h-5')}</button></div>
+ </div>`;
+}
+
+function sectionCard(section,idx){
+ return `<section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden"><div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3"><div class="w-9 h-9 bg-slate-100 text-slate-600 rounded-lg grid place-items-center">${icon(section.icon,'w-5 h-5')}</div><div><h3 class="font-bold">${section.title}</h3><p class="text-xs text-slate-500">Check = reviewed. Enter the value. Record where it came from.</p></div></div><div class="divide-y divide-slate-100">${section.fields.map(fieldRow).join('')}</div></section>`;
+}
+
+function fieldRow(f){
+ const d=current.fields[f.key]||emptyField();
+ let control=''; const base=`oninput="updateField('${f.key}','value',this.value)" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"`;
+ if(f.type==='select') control=`<select ${base}><option value="">Select...</option>${f.options.map(o=>`<option ${d.value===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
+ else if(f.type==='textarea') control=`<textarea rows="2" placeholder="${esc(f.placeholder||'')}" ${base}>${esc(d.value)}</textarea>`;
+ else control=`<input type="${f.type||'text'}" value="${esc(d.value)}" placeholder="${esc(f.placeholder||'')}" ${base}>`;
+ return `<div class="grid grid-cols-[36px_minmax(160px,230px)_minmax(220px,1fr)_minmax(150px,220px)_130px] gap-3 items-center px-6 py-4 hover:bg-slate-50/60">
+   <label class="grid place-items-center"><input type="checkbox" ${d.reviewed?'checked':''} onchange="updateField('${f.key}','reviewed',this.checked)" class="w-4 h-4 accent-indigo-600"></label>
+   <div class="text-sm font-semibold text-slate-700">${f.label}</div>
+   <div>${control}</div>
+   <input value="${esc(d.source)}" oninput="updateField('${f.key}','source',this.value)" placeholder="Source: S2.1 / email" class="px-3 py-2.5 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+   <select onchange="updateField('${f.key}','status',this.value)" class="px-2 py-2.5 border border-slate-200 rounded-lg text-xs font-semibold bg-white outline-none">${STATUS_OPTIONS.map(o=>`<option ${d.status===o?'selected':''}>${o}</option>`).join('')}</select>
+ </div>`;
+}
+
+function openingSection(){
+ return `<div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-9 h-9 bg-slate-100 text-slate-600 rounded-lg grid place-items-center">${icon('door-open')}</div><div><h3 class="font-bold">Openings</h3><p class="text-xs text-slate-500">Add every door, window, curtain or equipment opening that matters to the quote.</p></div></div><button onclick="addOpening()" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">${icon('plus','w-4 h-4')} Add Opening</button></div>
+ <div class="p-6 space-y-4">${current.openings.length?current.openings.map((o,i)=>openingCard(o,i)).join(''):`<div class="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center text-slate-400 text-sm">No openings added yet.</div>`}</div>`;
+}
+function openingCard(o,i){
+ return `<div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50"><div class="flex justify-between items-center mb-4"><div class="font-bold text-sm">Opening ${i+1}</div><button onclick="removeOpening(${i})" class="text-slate-400 hover:text-rose-600">${icon('x','w-4 h-4')}</button></div><div class="grid md:grid-cols-3 xl:grid-cols-5 gap-3">${OPENING_FIELDS.map(f=>{const val=o[f.key]||''; if(f.type==='select') return `<label class="text-xs text-slate-500"><span class="block mb-1 font-semibold">${f.label}</span><select onchange="updateOpening(${i},'${f.key}',this.value)" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-sm"><option value="">Select...</option>${f.options.map(x=>`<option ${val===x?'selected':''}>${x}</option>`).join('')}</select></label>`; return `<label class="text-xs text-slate-500"><span class="block mb-1 font-semibold">${f.label}</span><input value="${esc(val)}" oninput="updateOpening(${i},'${f.key}',this.value)" placeholder="${esc(f.placeholder||'')}" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-sm"></label>`;}).join('')}</div><div class="mt-3 flex gap-3 items-center"><label class="text-xs flex items-center gap-2"><input type="checkbox" ${o.reviewed?'checked':''} onchange="updateOpening(${i},'reviewed',this.checked)" class="accent-indigo-600"> Reviewed</label><select onchange="updateOpening(${i},'status',this.value)" class="px-2 py-1.5 border border-slate-200 rounded-lg bg-white text-xs font-semibold">${STATUS_OPTIONS.map(x=>`<option ${(o.status||'Confirmed')===x?'selected':''}>${x}</option>`).join('')}</select></div></div>`;
+}
+
+function aiView(){
+ if(!current) return `<div class="max-w-4xl mx-auto text-center py-16"><h2 class="text-2xl font-bold">Start a scope first.</h2><button onclick="go('new')" class="mt-4 bg-indigo-600 text-white px-5 py-3 rounded-lg font-semibold">New Scope</button></div>`;
+ return `<div class="max-w-5xl mx-auto fade-in"><div class="grid lg:grid-cols-2 gap-6">
+ <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"><div class="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl grid place-items-center mb-4">${icon('download')}</div><h2 class="text-xl font-bold">1. Download AI Prompt</h2><p class="text-sm text-slate-500 mt-2 leading-6">Upload the drawings to any AI model, attach this prompt, and ask it to return Forge Scope JSON. The prompt tells the model not to guess and to include drawing-sheet sources.</p><button onclick="downloadAIPrompt()" class="mt-5 w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-semibold">Download ${TYPES[current.type].label} AI Prompt</button></section>
+ <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"><div class="w-11 h-11 bg-violet-50 text-violet-600 rounded-xl grid place-items-center mb-4">${icon('braces')}</div><h2 class="text-xl font-bold">2. Paste AI Results</h2><p class="text-sm text-slate-500 mt-2">Paste the JSON returned by ChatGPT, Claude, Gemini, Hermes, or another model.</p><textarea id="aiJson" rows="13" placeholder='{"projectType":"${current.type}","fields":{...}}' class="mt-4 w-full font-mono text-xs p-4 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-violet-500"></textarea><div id="aiError" class="text-sm text-rose-600 mt-2"></div><button onclick="importAI()" class="mt-4 w-full bg-slate-900 text-white px-4 py-3 rounded-lg font-semibold">Import Into Worksheet</button></section>
+ </div><div class="mt-6 bg-amber-50 border border-amber-200 rounded-2xl p-5 flex gap-4"><div class="text-amber-600">${icon('triangle-alert')}</div><div><div class="font-semibold text-amber-950">AI is an intake assistant, not the estimator.</div><p class="text-sm text-amber-800 mt-1">Imported values remain editable. Review the plan source and mark critical fields before generating the final scope summary.</p></div></div><div class="mt-6"><button onclick="view='editor';render()" class="text-indigo-600 font-semibold text-sm">← Back to worksheet</button></div></div>`;
+}
+
+function generateSummary(){ upsertCurrent(); view='summary'; render(); }
+function summaryData(){
+ const sections=[];
+ SCHEMAS[current.type].forEach(sec=>{
+   const items=sec.fields.map(f=>({label:f.label, ...current.fields[f.key]})).filter(x=>String(x.value||'').trim());
+   if(items.length) sections.push({title:sec.title, items});
+ });
+ const openings=current.openings.filter(o=>Object.values(o).some(v=>typeof v==='string'&&v.trim()));
+ return {sections,openings};
+}
+function summaryView(){
+ if(!current) return '';
+ const d=summaryData(); const project=current.fields.projectName?.value||'Untitled Scope'; const customer=current.fields.customer?.value||'';
+ return `<div class="max-w-5xl mx-auto fade-in"><div class="no-print flex flex-wrap justify-between gap-3 mb-5"><button onclick="view='editor';render()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold flex items-center gap-2">${icon('arrow-left','w-4 h-4')} Back to Worksheet</button><div class="flex flex-wrap gap-2"><button onclick="copySummary()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold flex items-center gap-2">${icon('copy','w-4 h-4')} Copy</button><button onclick="exportJSON()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold flex items-center gap-2">${icon('braces','w-4 h-4')} JSON</button><button onclick="window.print()" class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold flex items-center gap-2">${icon('printer','w-4 h-4')} Print / PDF</button></div></div>
+ <article class="print-card bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden"><div class="bg-slate-900 text-white p-8"><div class="flex justify-between gap-6 items-start"><div><div class="text-xs uppercase tracking-[.25em] text-indigo-300 font-bold">Forge Scope</div><h1 class="text-3xl font-extrabold mt-2">${esc(project)}</h1>${customer?`<div class="text-slate-300 mt-2">${esc(customer)}</div>`:''}</div><div class="text-right text-xs text-slate-400"><div>${TYPES[current.type].label} Scope Summary</div><div class="mt-1">Updated ${fmtDate(current.updatedAt)}</div></div></div></div>
+ <div class="p-8 space-y-7">${d.sections.map(sec=>`<section><h2 class="font-extrabold text-sm uppercase tracking-wider text-slate-500 mb-3 pb-2 border-b border-slate-200">${sec.title}</h2><div class="grid md:grid-cols-2 gap-x-8 gap-y-3">${sec.items.map(x=>summaryItem(x)).join('')}</div></section>`).join('')}${d.openings.length?`<section><h2 class="font-extrabold text-sm uppercase tracking-wider text-slate-500 mb-3 pb-2 border-b border-slate-200">Openings</h2><div class="space-y-3">${d.openings.map((o,i)=>`<div class="border border-slate-200 rounded-xl p-4"><div class="font-bold text-sm mb-2">${esc(o.wall||'Opening '+(i+1))}${o.type?' — '+esc(o.type):''}</div><div class="text-sm text-slate-700 grid md:grid-cols-2 gap-2">${['width','height','location','header','framing','foundationDrop','source'].filter(k=>o[k]).map(k=>`<div><span class="text-slate-400">${OPENING_FIELDS.find(f=>f.key===k)?.label}: </span>${esc(o[k])}</div>`).join('')}</div></div>`).join('')}</div></section>`:''}</div>
+ <div class="px-8 py-5 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex justify-between"><span>Blank fields omitted automatically.</span><span>Forge Scope • Estimator Intake</span></div></article></div>`;
+}
+function summaryItem(x){
+ const badge=x.status && x.status!=='Confirmed' ? `<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full font-bold ${x.status==='RFI'?'bg-rose-100 text-rose-700':x.status==='Verify'?'bg-amber-100 text-amber-700':x.status==='Assumption'?'bg-violet-100 text-violet-700':'bg-slate-100 text-slate-600'}">${x.status}</span>`:'';
+ return `<div class="py-1"><div class="text-xs font-semibold text-slate-400">${x.label}${badge}</div><div class="text-sm font-semibold text-slate-800 mt-1 whitespace-pre-wrap">${esc(x.value)}</div>${x.source?`<div class="text-[11px] text-slate-400 mt-1">Source: ${esc(x.source)}</div>`:''}</div>`;
+}
+
+function updateField(key,prop,val){ current.fields[key]=current.fields[key]||emptyField(); current.fields[key][prop]=val; current.updatedAt=new Date().toISOString(); }
+function addOpening(){ current.openings.push({wall:'',type:'',width:'',height:'',location:'',header:'',framing:'',foundationDrop:'',source:'',reviewed:false,status:'Confirmed'}); render(); }
+function removeOpening(i){ current.openings.splice(i,1); render(); }
+function updateOpening(i,key,val){ current.openings[i][key]=val; current.updatedAt=new Date().toISOString(); }
+function saveCurrent(){ upsertCurrent(); render(); }
+function startNew(type,mode){ current=newProject(type,mode); view=mode==='ai'?'ai':'editor'; render(); }
+function openProject(id){ current=JSON.parse(JSON.stringify(saved.find(p=>p.id===id))); view='editor'; render(); }
+function duplicateProject(id){ const src=saved.find(p=>p.id===id); if(!src)return; const copy=JSON.parse(JSON.stringify(src)); copy.id='scope_'+Date.now(); copy.createdAt=copy.updatedAt=new Date().toISOString(); if(copy.fields.projectName?.value) copy.fields.projectName.value += ' — Copy'; saved.unshift(copy); persist(); render(); }
+function deleteProject(id){ if(!confirm('Delete this saved scope?')) return; saved=saved.filter(p=>p.id!==id); persist(); render(); }
+function go(v){ if(v==='ai' && !current){ view='new'; } else view=v; render(); }
+
+function getSchemaKeys(type){ return SCHEMAS[type].flatMap(s=>s.fields.map(f=>({key:f.key,label:f.label,section:s.title}))); }
+function buildAIPrompt(){
+ const keys=getSchemaKeys(current.type);
+ return `FORGE SCOPE — ${TYPES[current.type].label.toUpperCase()} PLAN EXTRACTION\n\nYou are assisting a construction estimator. Review ALL uploaded drawings and specifications thoroughly before answering. Search plans, foundation plans, floor plans, roof/truss plans, elevations, sections, schedules, general notes, structural notes, details and revisions.\n\nRULES:\n1. Do not guess. If information is not shown, omit the field.\n2. If drawings conflict, use status \"Verify\" and briefly explain the conflict in the value.\n3. Use the exact drawing terminology and dimensions where possible.\n4. Include a concise source for each populated value: sheet number + view/detail when available (example: \"S2.1 Roof Framing Plan\").\n5. Use status \"Confirmed\" for information clearly shown, \"Assumption\" only if I explicitly asked you to assume it, \"RFI\" if the missing item blocks the quote, and \"Verify\" for a conflict or uncertain interpretation.\n6. Return JSON only. No markdown fences, no explanation before or after JSON.\n7. Omit unknown/blank fields completely.\n8. For openings, create one object per material opening that affects framing, trusses, foundations or supplied materials.\n\nPROJECT TYPE: ${current.type}\n\nRETURN THIS STRUCTURE:\n{\n  \"projectType\": \"${current.type}\",\n  \"fields\": {\n    \"fieldKey\": {\"value\": \"answer\", \"source\": \"drawing source\", \"status\": \"Confirmed\"}\n  },\n  \"openings\": [\n    {\"wall\":\"North Gable\",\"type\":\"Overhead Door\",\"width\":\"22'-0\\\"\",\"height\":\"14'-0\\\"\",\"location\":\"\",\"header\":\"\",\"framing\":\"\",\"foundationDrop\":\"\",\"source\":\"S2.0\",\"status\":\"Confirmed\"}\n  ]\n}\n\nALLOWED FIELD KEYS:\n${keys.map(x=>`- ${x.key} | ${x.section} | ${x.label}`).join('\n')}\n\nBefore producing JSON, internally cross-check the overall dimensions, wall heights, roof geometry, foundation support and major openings against at least two relevant drawing views when available. Do not output that internal reasoning.`;
+}
+function downloadAIPrompt(){ if(!current){ alert('Start a scope first.'); return; } const blob=new Blob([buildAIPrompt()],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`Forge-Scope-${current.type}-AI-Prompt.txt`; a.click(); URL.revokeObjectURL(a.href); }
+function importAI(){
+ const box=document.getElementById('aiJson'); const err=document.getElementById('aiError'); let raw=box.value.trim();
+ raw=raw.replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+ try{
+  const data=JSON.parse(raw); if(data.projectType && data.projectType!==current.type) throw new Error(`This JSON is for ${data.projectType}, but this scope is ${current.type}.`);
+  Object.entries(data.fields||{}).forEach(([k,v])=>{ if(!(k in current.fields)) return; if(typeof v==='string') current.fields[k]={...current.fields[k],value:v,reviewed:false,status:'Confirmed'}; else current.fields[k]={...current.fields[k],value:v.value??'',source:v.source??'',status:STATUS_OPTIONS.includes(v.status)?v.status:'Confirmed',reviewed:false}; });
+  if(Array.isArray(data.openings)) current.openings=data.openings.map(o=>({...o,reviewed:false,status:STATUS_OPTIONS.includes(o.status)?o.status:'Confirmed'}));
+  current.mode='ai'; upsertCurrent(); view='editor'; render();
+ }catch(e){ err.textContent='Could not import: '+e.message; }
+}
+function exportJSON(){ const blob=new Blob([JSON.stringify(current,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(current.fields.projectName?.value||'Forge-Scope').replace(/[^a-z0-9-_]+/gi,'-')+'.json'; a.click(); URL.revokeObjectURL(a.href); }
+function textSummary(){ const d=summaryData(); let out=`FORGE SCOPE — ${TYPES[current.type].label.toUpperCase()}\n${current.fields.projectName?.value||'Untitled Scope'}\n\n`; d.sections.forEach(sec=>{out+=sec.title.toUpperCase()+'\n'; sec.items.forEach(x=>{out+=`• ${x.label}: ${x.value}${x.status&&x.status!=='Confirmed'?' ['+x.status+']':''}${x.source?' — Source: '+x.source:''}\n`;}); out+='\n';}); if(d.openings.length){out+='OPENINGS\n';d.openings.forEach((o,i)=>{out+=`• ${o.wall||'Opening '+(i+1)}${o.type?' — '+o.type:''}${o.width?' — '+o.width:''}${o.height?' x '+o.height:''}${o.header?' — '+o.header:''}${o.source?' — Source: '+o.source:''}\n`;});} return out; }
+async function copySummary(){ try{await navigator.clipboard.writeText(textSummary()); alert('Scope summary copied.');}catch{alert('Copy failed.');} }
+
+render();
+</script>
+</body>
+</html>
