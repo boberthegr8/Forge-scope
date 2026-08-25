@@ -3,7 +3,7 @@
     { key: 'crm', label: 'CRM', href: 'https://forge-crm-six.vercel.app' },
     { key: 'reader', label: 'Reader', href: 'https://robquotes.vercel.app' },
     { key: 'scope', label: 'Scope', active: true },
-    { key: 'quoter', label: 'Quote / AI Quoter', comingSoon: true }
+    { key: 'quoter', label: 'Quote / AI Quoter', href: 'https://lumber-estimator-ai.vercel.app' }
   ];
 
   function installStyles() {
