@@ -5,11 +5,13 @@ on:
     paths:
       - 'forgeSuiteBridge.js'
       - 'forgeCoreScope.js'
+      - 'forgeSuiteNav.js'
       - '.github/workflows/qa-forge-scope-js.yml'
   pull_request:
     paths:
       - 'forgeSuiteBridge.js'
       - 'forgeCoreScope.js'
+      - 'forgeSuiteNav.js'
 
 permissions:
   contents: read
@@ -23,3 +25,5 @@ jobs:
         run: node --check forgeSuiteBridge.js
       - name: Check Forge Core Scope syntax
         run: node --check forgeCoreScope.js
+      - name: Check Forge Suite navigation syntax
+        run: node --check forgeSuiteNav.js

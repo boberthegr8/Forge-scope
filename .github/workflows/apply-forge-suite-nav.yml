@@ -1,0 +1,36 @@
+name: Apply Forge Suite Navigation
+
+on:
+  push:
+    branches:
+      - feature/forge-suite-nav-v1
+    paths:
+      - scripts/patch_forge_suite_nav.py
+      - .github/workflows/apply-forge-suite-nav.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Attach Forge Suite navigation
+        run: python scripts/patch_forge_suite_nav.py
+      - name: Check integration JavaScript
+        run: |
+          node --check forgeSuiteBridge.js
+          node --check forgeSuiteNav.js
+          node --check forgeCoreScope.js
+      - name: Commit patched Scope shell
+        run: |
+          if git diff --quiet; then
+            echo "No shell changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Apply shared Forge Suite navigation to Scope"
+          git push
