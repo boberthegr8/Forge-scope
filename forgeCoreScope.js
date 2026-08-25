@@ -268,7 +268,7 @@
       customerId: doc.customerId || null,
       sourceDocumentId: doc.id,
       analysisRunId: doc.analysis?.id || null,
-      source: row.source === 'forge-scope-reader' ? 'forge-reader' : 'forge-scope'
+      source: 'forge-reader'
     };
     scope.readerAnalysis = {
       status: doc.analysis?.status || 'queued',
@@ -320,7 +320,7 @@
       projectId: row.project_id || restored.core?.projectId || null,
       customerId: row.customer_id || restored.core?.customerId || null,
       sourceDocumentId: row.source_document_id || restored.core?.sourceDocumentId || null,
-      source: 'forge-reader'
+      source: row.source === 'forge-scope-reader' ? 'forge-reader' : 'forge-scope'
     };
     current = restored;
     upsertCurrent();
