@@ -51,7 +51,10 @@
 
   function worksheetForCore(scope) {
     const clean = JSON.parse(JSON.stringify(scope || {}));
+    // Local UI/cache timestamps are intentionally excluded from Core content hashing/versioning.
+    delete clean.updatedAt;
     delete clean.coreVersion;
+    delete clean.coreSyncedAt;
     if (clean.readerAnalysis?.extractedData?.pages) delete clean.readerAnalysis.extractedData.pages;
     return clean;
   }
@@ -108,7 +111,7 @@
         client.from('projects').select('id,name,customer_id').eq('organization_id',context.organizationId),
         client.from('documents').select('id,title,original_filename,document_type,status,created_at,project_id,customer_id,source').eq('organization_id',context.organizationId).eq('source','forge-reader').order('created_at',{ascending:false}).limit(100),
         client.from('document_analysis_runs').select('id,document_id,status,analysis_type,parser,page_count,extracted_data,warnings,error_message,created_at,completed_at').eq('organization_id',context.organizationId).order('created_at',{ascending:false}).limit(300),
-        client.from('scopes').select('id,title,scope_type,status,current_version,structured_data,source_document_id,project_id,customer_id,updated_at,source').eq('organization_id',context.organizationId).eq('source','forge-scope-reader').order('updated_at',{ascending:false}).limit(100)
+        client.from('scopes').select('id,title,scope_type,status,current_version,structured_data,source_document_id,project_id,customer_id,updated_at,source').eq('organization_id',context.organizationId).in('source',['forge-scope','forge-scope-reader']).order('updated_at',{ascending:false}).limit(100)
       ]);
       for (const result of [customersResult,projectsResult,documentsResult,analysesResult,scopesResult]) if (result.error) throw result.error;
 
@@ -174,28 +177,58 @@
   }
 
   async function syncScope(scope = (typeof current !== 'undefined' ? current : null)) {
-    if (!scope?.coreScopeId || !scope?.core?.sourceDocumentId) return null;
+    if (!scope) return null;
     const context = await getContext();
-    if (!context?.organizationId) throw new Error('Sign into Forge Core before saving this linked scope.');
+    if (!context?.organizationId) throw new Error('Sign into Forge Core before saving this scope.');
+
+    if (!scope.coreScopeId) {
+      scope.coreScopeId = crypto.randomUUID();
+      scope.core = {
+        ...(scope.core || {}),
+        organizationId: context.organizationId,
+        locationId: context.locationId || null,
+        projectId: scope.core?.projectId || null,
+        customerId: scope.core?.customerId || null,
+        sourceDocumentId: scope.core?.sourceDocumentId || null,
+        source: scope.core?.sourceDocumentId ? 'forge-reader' : 'forge-scope'
+      };
+      if (typeof upsertCurrent === 'function' && typeof current !== 'undefined' && current?.id === scope.id) upsertCurrent();
+    } else {
+      scope.core = {
+        ...(scope.core || {}),
+        organizationId: context.organizationId,
+        locationId: context.locationId || scope.core?.locationId || null,
+        projectId: scope.core?.projectId || null,
+        customerId: scope.core?.customerId || null,
+        sourceDocumentId: scope.core?.sourceDocumentId || null,
+        source: scope.core?.sourceDocumentId ? 'forge-reader' : 'forge-scope'
+      };
+    }
+
     const client = await coreClient();
-    const { data, error } = await client.rpc('commit_scope_from_reader_v1', {
+    const { data, error } = await client.rpc('commit_scope_v1', {
       p_scope_id: scope.coreScopeId,
       p_organization_id: context.organizationId,
       p_location_id: context.locationId || null,
       p_project_id: scope.core.projectId || null,
       p_customer_id: scope.core.customerId || null,
-      p_source_document_id: scope.core.sourceDocumentId,
+      p_source_document_id: scope.core.sourceDocumentId || null,
       p_scope_type: scope.type,
       p_title: scope.fields?.projectName?.value || 'Untitled Scope',
       p_structured_data: worksheetForCore(scope)
     });
     if (error) throw error;
+
     const result = data?.[0];
     if (result) {
       scope.coreVersion = result.version_number;
       scope.coreSyncedAt = new Date().toISOString();
       if (typeof upsertCurrent === 'function' && typeof current !== 'undefined' && current?.id === scope.id) upsertCurrent();
-      if (typeof notifySaved === 'function') notifySaved(`Saved to Forge Core • v${result.version_number}`);
+      if (typeof notifySaved === 'function') {
+        notifySaved(result.changed
+          ? `Saved to Forge Core • v${result.version_number}`
+          : `Forge Core already current • v${result.version_number}`);
+      }
     }
     return result;
   }
@@ -287,7 +320,7 @@
       projectId: row.project_id || restored.core?.projectId || null,
       customerId: row.customer_id || restored.core?.customerId || null,
       sourceDocumentId: row.source_document_id || restored.core?.sourceDocumentId || null,
-      source: 'forge-reader'
+      source: row.source === 'forge-scope-reader' ? 'forge-reader' : 'forge-scope'
     };
     current = restored;
     upsertCurrent();
@@ -326,7 +359,7 @@
   }
 
   function coreScopeCards() {
-    if (!coreState.scopes.length) return '<div class="forge-core-empty small">No Reader-linked Core scopes yet.</div>';
+    if (!coreState.scopes.length) return '<div class="forge-core-empty small">No Core scopes yet.</div>';
     return coreState.scopes.map(row => `<article class="forge-core-row compact">
       <div class="forge-core-row-main"><div class="forge-core-row-title">${h(row.title || 'Untitled Scope')}</div><div class="forge-core-row-sub">${h((typeof TYPES!=='undefined'&&TYPES[row.scope_type]?.label)||row.scope_type||'Scope')} • Core v${h(row.current_version)} • ${h(fmtDate(row.updated_at))}</div></div>
       <button type="button" class="forge-core-secondary" data-core-open="${h(row.id)}">Open</button>
@@ -335,11 +368,11 @@
 
   function connectedPanel() {
     return `<div class="forge-core-heading-row">
-      <div><div class="forge-core-eyebrow">FORGE CORE</div><h2>Reader → Scope</h2><p>${h(coreState.context.organizationName)} • ${h(coreState.context.locationName)} • ${h(coreState.context.role)}</p></div>
+      <div><div class="forge-core-eyebrow">FORGE CORE</div><h2>Forge Scope + Reader</h2><p>${h(coreState.context.organizationName)} • ${h(coreState.context.locationName)} • ${h(coreState.context.role)}</p></div>
       <div class="forge-core-header-actions"><button type="button" class="forge-core-secondary" id="forge-core-refresh">Refresh</button><button type="button" class="forge-core-secondary" id="forge-core-signout">Sign out</button></div>
     </div>
     <section class="forge-core-section"><div class="forge-core-section-title"><div><strong>Reader documents</strong><span>Select the Scope template yourself; Reader never guesses the building type.</span></div><a href="https://robquotes.vercel.app" target="_blank" rel="noreferrer">Open Reader ↗</a></div>${readerCards()}</section>
-    <section class="forge-core-section"><div class="forge-core-section-title"><div><strong>Core-linked scopes</strong><span>Reopen Reader-linked worksheets from another browser.</span></div></div>${coreScopeCards()}</section>`;
+    <section class="forge-core-section"><div class="forge-core-section-title"><div><strong>Core scopes</strong><span>Reopen manual, AI-assisted or Reader-linked worksheets from another browser.</span></div></div>${coreScopeCards()}</section>`;
   }
 
   function signedOutPanel() {
@@ -400,7 +433,7 @@
     button.id = 'forge-core-reader';
     button.type = 'button';
     button.className = 'px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-slate-950 text-sm font-extrabold flex items-center gap-2 transition';
-    button.innerHTML = `<span aria-hidden="true">◆</span><span>${coreState.context?.organizationId?'Core Reader':'Connect Core'}</span>`;
+    button.innerHTML = `<span aria-hidden="true">◆</span><span>${coreState.context?.organizationId?'Forge Core':'Connect Core'}</span>`;
     button.addEventListener('click', openPanel);
     actions.prepend(button);
   }
@@ -430,12 +463,32 @@
     const priorSaveCurrent = saveCurrent;
     saveCurrent = function forgeCoreScopeSaveWrapper() {
       priorSaveCurrent();
-      if (typeof current !== 'undefined' && current?.coreScopeId && current?.core?.sourceDocumentId) {
+      if (typeof current !== 'undefined' && current && coreState.context?.organizationId) {
         void syncScope(current).catch(error => {
           console.error('Forge Core Scope save failed', error);
           if (typeof notifySaved === 'function') notifySaved('Saved locally • Core sync failed');
         });
       }
+    };
+  }
+
+  if (typeof duplicateProject === 'function') {
+    const priorDuplicateProject = duplicateProject;
+    duplicateProject = function forgeCoreSafeDuplicateProject(id) {
+      priorDuplicateProject(id);
+      const copy = typeof saved !== 'undefined' ? saved?.[0] : null;
+      if (!copy || copy.id === id) return;
+      delete copy.coreScopeId;
+      delete copy.coreVersion;
+      delete copy.coreSyncedAt;
+      if (copy.core) {
+        copy.core = {
+          ...copy.core,
+          source: copy.core.sourceDocumentId ? 'forge-reader' : 'forge-scope'
+        };
+      }
+      if (typeof persist === 'function') persist();
+      if (typeof render === 'function') render();
     };
   }
 
