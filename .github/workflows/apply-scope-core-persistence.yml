@@ -1,0 +1,33 @@
+name: Apply Scope Core Persistence
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-scope-core-persistence.yml'
+      - 'scripts/patch_scope_core_persistence.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Patch generic Forge Scope Core persistence
+        run: python scripts/patch_scope_core_persistence.py
+
+      - name: Commit patch if needed
+        run: |
+          if git diff --quiet; then
+            echo "No patch needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add forgeCoreScope.js
+          git commit -m "Persist all Forge Scope worksheets in Core"
+          git push
