@@ -50,7 +50,9 @@
     let completed = false;
     setButtonState('Opening CRM…', true);
 
-    const crmWindow = window.open(`${target}/#/projects`, 'forge-crm');
+    // A fresh tab guarantees Forge CRM has this Scope tab as window.opener,
+    // which gives the two separate Vercel apps a safe postMessage handshake.
+    const crmWindow = window.open(`${target}/#/projects`, '_blank');
     if (!crmWindow) {
       setButtonState('Send to CRM', false);
       window.alert('Your browser blocked the CRM window. Allow pop-ups for Forge Scope and try again.');
