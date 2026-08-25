@@ -6,6 +6,7 @@
   <title>Forge Scope — Estimator Intake</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -30,10 +31,16 @@
     .bom-result th { font-size: .65rem; line-height: .9rem; }
     .bom-result .bom-source { font-size: .69rem; line-height: 1rem; color: #94a3b8; }
     @media print {
+      html, body, #app { height:auto !important; min-height:0 !important; overflow:visible !important; }
+      body { background:white !important; }
       aside, header, .no-print { display:none !important; }
-      main { overflow: visible !important; }
-      #content { padding:0 !important; background:white !important; }
-      .print-card { box-shadow:none !important; border-color:#e2e8f0 !important; }
+      main { display:block !important; height:auto !important; min-height:0 !important; overflow:visible !important; }
+      #content { display:block !important; height:auto !important; min-height:0 !important; overflow:visible !important; padding:0 !important; background:white !important; }
+      .print-card { box-shadow:none !important; border-color:#e2e8f0 !important; overflow:visible !important; }
+      .scope-summary table { break-inside:auto; page-break-inside:auto; }
+      .scope-summary tr { break-inside:avoid; page-break-inside:avoid; }
+      .scope-summary thead { display:table-header-group; }
+      @page { size: Letter; margin: .45in; }
     }
   </style>
 </head>
@@ -560,7 +567,7 @@ function summaryView(){
    ...sec,
    items:sec.items.filter(x=>x.label!=='Explicit Exclusions')
  })).filter(sec=>sec.items.length);
- return `<div class="max-w-5xl mx-auto fade-in"><div class="no-print flex flex-wrap justify-between gap-3 mb-5"><button onclick="view='editor';render()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold flex items-center gap-2">${icon('arrow-left','w-4 h-4')} Back to Worksheet</button><div class="flex flex-wrap gap-2"><button onclick="copySummary()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold flex items-center gap-2">${icon('copy','w-4 h-4')} Copy</button><button onclick="exportJSON()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold flex items-center gap-2">${icon('braces','w-4 h-4')} JSON</button><button onclick="window.print()" class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold flex items-center gap-2">${icon('printer','w-4 h-4')} Print / PDF</button></div></div>
+ return `<div class="max-w-5xl mx-auto fade-in"><div class="no-print flex flex-wrap justify-between gap-3 mb-5"><button onclick="view='editor';render()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold flex items-center gap-2">${icon('arrow-left','w-4 h-4')} Back to Worksheet</button><div class="flex flex-wrap gap-2"><button onclick="copySummary()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold flex items-center gap-2">${icon('copy','w-4 h-4')} Copy</button><button onclick="exportJSON()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold flex items-center gap-2">${icon('braces','w-4 h-4')} JSON</button><button onclick="exportPDF()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2">${icon('file-down','w-4 h-4')} Export PDF</button><button onclick="window.print()" class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold flex items-center gap-2">${icon('printer','w-4 h-4')} Print / PDF</button></div></div>
  <article class="scope-summary print-card bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden"><div class="bg-slate-900 text-white px-7 py-6"><div class="flex justify-between gap-6 items-start"><div><div class="text-[10px] uppercase tracking-[.25em] text-indigo-300 font-bold">Forge Scope</div><h1 class="summary-title font-extrabold mt-1.5">${esc(project)}</h1>${customer?`<div class="text-slate-300 mt-1.5 text-[.805rem]">${esc(customer)}</div>`:''}</div><div class="text-right text-[.69rem] text-slate-400"><div>${TYPES[current.type].label} Scope Summary</div><div class="mt-1">Updated ${fmtDate(current.updatedAt)}</div></div></div></div>
  <div class="px-7 py-6 space-y-5">${exclusions?summaryExclusions(exclusions):''}${sections.map(summaryTable).join('')}${d.openings.length?summaryOpeningsTable(d.openings):''}</div>
  <div class="px-7 py-4 bg-slate-50 border-t border-slate-200 text-[.69rem] text-slate-500 flex justify-between"><span>Blank fields omitted automatically.</span><span>Forge Scope • Estimator Intake</span></div></article></div>`;
@@ -584,7 +591,13 @@ function updateField(key,prop,val){ current.fields[key]=current.fields[key]||emp
 function addOpening(){ current.openings.push({wall:'',type:'',width:'',height:'',location:'',header:'',framing:'',foundationDrop:'',source:'',reviewed:false,status:'Confirmed'}); render(); }
 function removeOpening(i){ current.openings.splice(i,1); render(); }
 function updateOpening(i,key,val){ current.openings[i][key]=val; current.updatedAt=new Date().toISOString(); }
-function saveCurrent(){ upsertCurrent(); render(); }
+let saveNoticeTimer=null;
+function notifySaved(message='Saved in this browser'){
+ let el=document.getElementById('forgeSaveNotice');
+ if(!el){ el=document.createElement('div'); el.id='forgeSaveNotice'; el.className='fixed right-5 bottom-5 z-[100] rounded-xl bg-slate-900 text-white px-4 py-3 shadow-xl text-sm font-semibold transition-opacity'; document.body.appendChild(el); }
+ el.textContent=message; el.style.opacity='1'; clearTimeout(saveNoticeTimer); saveNoticeTimer=setTimeout(()=>{el.style.opacity='0';},1800);
+}
+function saveCurrent(){ upsertCurrent(); render(); notifySaved(); }
 function startNew(type,mode){ current=newProject(type,mode); view=mode==='ai'?'ai':'editor'; render(); }
 function openProject(id){ current=JSON.parse(JSON.stringify(saved.find(p=>p.id===id))); view='editor'; render(); }
 function duplicateProject(id){ const src=saved.find(p=>p.id===id); if(!src)return; const copy=JSON.parse(JSON.stringify(src)); copy.id='scope_'+Date.now(); copy.createdAt=copy.updatedAt=new Date().toISOString(); if(copy.fields.projectName?.value) copy.fields.projectName.value += ' — Copy'; saved.unshift(copy); persist(); render(); }
@@ -652,6 +665,33 @@ function loadAIFile(input){
 }
 
 function exportJSON(){ const blob=new Blob([JSON.stringify(current,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(current.fields.projectName?.value||'Forge-Scope').replace(/[^a-z0-9-_]+/gi,'-')+'.json'; a.click(); URL.revokeObjectURL(a.href); }
+async function exportPDF(){
+ const source=document.querySelector('.scope-summary');
+ if(!source){ alert('Generate the scope summary first.'); return; }
+ if(typeof html2pdf==='undefined'){ alert('PDF export could not load. Use Print / PDF as a fallback.'); return; }
+ const project=(current?.fields?.projectName?.value||'Forge-Scope').replace(/[^a-z0-9-_]+/gi,'-').replace(/^-+|-+$/g,'')||'Forge-Scope';
+ const clone=source.cloneNode(true);
+ clone.style.width='7.6in'; clone.style.maxWidth='7.6in'; clone.style.margin='0'; clone.style.boxShadow='none'; clone.style.overflow='visible';
+ clone.querySelectorAll('.no-print').forEach(el=>el.remove());
+ const holder=document.createElement('div');
+ holder.setAttribute('aria-hidden','true'); holder.style.position='fixed'; holder.style.left='-100000px'; holder.style.top='0'; holder.style.width='7.6in'; holder.style.background='white'; holder.appendChild(clone); document.body.appendChild(holder);
+ const options={
+   margin:[0.35,0.35,0.4,0.35],
+   filename:`${project}-Scope.pdf`,
+   image:{type:'jpeg',quality:0.98},
+   html2canvas:{scale:1.5,useCORS:true,backgroundColor:'#ffffff',scrollY:0,windowWidth:900},
+   jsPDF:{unit:'in',format:'letter',orientation:'portrait'},
+   pagebreak:{mode:['css','legacy'],avoid:['tr']}
+ };
+ try{
+   await html2pdf().set(options).from(clone).save();
+ }catch(e){
+   console.error('Forge Scope PDF export failed',e);
+   alert('PDF export failed. Use Print / PDF as a fallback.');
+ }finally{
+   holder.remove();
+ }
+}
 function textSummary(){ const d=summaryData(); let out=`FORGE SCOPE — ${TYPES[current.type].label.toUpperCase()}\n${current.fields.projectName?.value||'Untitled Scope'}\n\n`; d.sections.forEach(sec=>{out+=sec.title.toUpperCase()+'\n'; sec.items.forEach(x=>{out+=`• ${x.label}: ${x.value}${x.status&&x.status!=='Confirmed'?' ['+x.status+']':''}${x.source?' — Source: '+x.source:''}\n`;}); out+='\n';}); if(d.openings.length){out+='OPENINGS\n';d.openings.forEach((o,i)=>{out+=`• ${o.wall||'Opening '+(i+1)}${o.type?' — '+o.type:''}${o.width?' — '+o.width:''}${o.height?' x '+o.height:''}${o.header?' — '+o.header:''}${o.source?' — Source: '+o.source:''}\n`;});} return out; }
 async function copySummary(){ try{await navigator.clipboard.writeText(textSummary()); alert('Scope summary copied.');}catch{alert('Copy failed.');} }
 
