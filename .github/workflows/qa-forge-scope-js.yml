@@ -1,0 +1,25 @@
+name: QA Forge Scope JavaScript
+
+on:
+  push:
+    paths:
+      - 'forgeSuiteBridge.js'
+      - 'forgeCoreScope.js'
+      - '.github/workflows/qa-forge-scope-js.yml'
+  pull_request:
+    paths:
+      - 'forgeSuiteBridge.js'
+      - 'forgeCoreScope.js'
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Forge Suite Bridge syntax
+        run: node --check forgeSuiteBridge.js
+      - name: Check Forge Core Scope syntax
+        run: node --check forgeCoreScope.js
