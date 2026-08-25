@@ -20,7 +20,8 @@ new_ai_view = r'''function aiView(){
 }
 '''
 
-text, n = re.subn(r'function aiView\(\)\{.*?\n\}\n\nfunction generateSummary\(\)', new_ai_view + '\nfunction generateSummary()', text, count=1, flags=re.S)
+pattern_ai = re.compile(r'function aiView\(\)\{.*?\n\}\n\nfunction generateSummary\(\)', re.S)
+text, n = pattern_ai.subn(lambda _: new_ai_view + '\nfunction generateSummary()', text, count=1)
 if n != 1:
     raise RuntimeError('Could not locate aiView() for replacement')
 
@@ -71,7 +72,7 @@ function loadAIFile(input){
  const reader=new FileReader();
  reader.onload=()=>{
   const box=document.getElementById('aiJson'); if(box) box.value=String(reader.result||'');
-  try{ const data=parseAIJson(reader.result); if(ready) ready.textContent=`${file.name} loaded and looks like valid JSON. Click Import Into Worksheet.`; }
+  try{ parseAIJson(reader.result); if(ready) ready.textContent=`${file.name} loaded and looks like valid JSON. Click Import Into Worksheet.`; }
   catch(e){ if(err) err.textContent='File loaded, but '+e.message; }
  };
  reader.onerror=()=>{ if(err) err.textContent='Could not read that file. Try downloading it again or paste the JSON instead.'; };
@@ -79,7 +80,8 @@ function loadAIFile(input){
 }
 '''
 
-text, n = re.subn(r'function importAI\(\)\{.*?\n\}\nfunction exportJSON\(\)', new_import + '\nfunction exportJSON()', text, count=1, flags=re.S)
+pattern_import = re.compile(r'function importAI\(\)\{.*?\n\}\nfunction exportJSON\(\)', re.S)
+text, n = pattern_import.subn(lambda _: new_import + '\nfunction exportJSON()', text, count=1)
 if n != 1:
     raise RuntimeError('Could not locate importAI() for replacement')
 
