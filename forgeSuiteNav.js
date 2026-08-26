@@ -1,9 +1,12 @@
 (() => {
   const MODULES = [
+    { key: 'home', label: 'Home', href: 'https://forge2-navy.vercel.app' },
     { key: 'crm', label: 'CRM', href: 'https://forge-crm-six.vercel.app' },
     { key: 'reader', label: 'Reader', href: 'https://robquotes.vercel.app' },
     { key: 'scope', label: 'Scope', active: true },
-    { key: 'quoter', label: 'Quote / AI Quoter', href: 'https://lumber-estimator-ai.vercel.app' }
+    { key: 'quoter', label: 'Quote / AI Quoter', href: 'https://lumber-estimator-ai.vercel.app' },
+    { key: 'manufacturing', label: 'Manufacturing', href: 'https://forgemfg.vercel.app' },
+    { key: 'portal', label: 'Portal', href: 'https://forge-portal-pi.vercel.app' }
   ];
 
   function installStyles() {
