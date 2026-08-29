@@ -12,10 +12,10 @@
     return current.quote;
   }
 
-  function save(){
+  function save(notify=false){
     if(!current) return;
     upsertCurrent();
-    if(typeof notifySaved==='function') notifySaved('Quote saved with scope');
+    if(notify && typeof notifySaved==='function') notifySaved('Quote saved with scope');
   }
 
   function sellFromCost(cost, margin){
@@ -75,7 +75,7 @@
           <div class="overflow-x-auto"><table class="w-full min-w-[950px] text-sm"><thead class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500"><tr><th class="text-left px-4 py-3">Description</th><th class="text-left px-3 py-3 w-24">Qty</th><th class="text-left px-3 py-3 w-28">Unit</th><th class="text-right px-3 py-3 w-32">Cost Ea.</th><th class="text-right px-3 py-3 w-24">GM %</th><th class="text-right px-3 py-3 w-32">Sell Ea.</th><th class="text-right px-3 py-3 w-32">Ext.</th><th class="w-12"></th></tr></thead><tbody>${q.lines.length?q.lines.map((l,i)=>quoteRow(l,i,q)).join(''):`<tr><td colspan="8" class="p-12 text-center text-slate-400">No quote lines yet. Add the final reviewed BOM items here.</td></tr>`}</tbody></table></div>
         </section>
         <aside class="space-y-5">
-          <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm"><h3 class="font-bold">Quote Controls</h3>${smallInput('Default Gross Margin %','defaultMargin',q.defaultMargin,'number')}${smallInput('Delivery / Freight','delivery',q.delivery,'number')}${smallInput('Tax Rate %','taxRate',q.taxRate,'number')}<label class="block mt-4 text-xs font-bold text-slate-500">Customer Notes</label><textarea oninput="forgeQuoteSet('notes',this.value)" rows="5" class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">${esc(q.notes||'')}</textarea></section>
+          <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm"><h3 class="font-bold">Quote Controls</h3>${smallInput('Default Gross Margin %','defaultMargin',q.defaultMargin,'number')}${smallInput('Delivery / Freight','delivery',q.delivery,'number')}${smallInput('Tax Rate %','taxRate',q.taxRate,'number')}<label class="block mt-4 text-xs font-bold text-slate-500">Customer Notes</label><textarea onchange="forgeQuoteSet('notes',this.value)" rows="5" class="mt-1 w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">${esc(q.notes||'')}</textarea></section>
           <section class="bg-slate-900 text-white rounded-2xl p-5 shadow-sm"><div class="text-xs uppercase tracking-wider text-slate-400 font-bold">Internal Totals</div><div class="flex justify-between mt-4 text-sm"><span class="text-slate-400">Material cost</span><b>${money(t.cost)}</b></div><div class="flex justify-between mt-2 text-sm"><span class="text-slate-400">Sell before tax</span><b>${money(t.sell)}</b></div><div class="flex justify-between mt-2 text-sm"><span class="text-slate-400">Gross margin</span><b>${t.gm.toFixed(1)}%</b></div><div class="border-t border-slate-700 my-4"></div><div class="flex justify-between text-sm"><span class="text-slate-400">Tax</span><b>${money(t.tax)}</b></div><div class="flex justify-between mt-2 text-xl"><span>Total</span><b>${money(t.total)}</b></div></section>
         </aside>
       </div>
@@ -83,13 +83,13 @@
   }
 
   function smallInput(label,key,value,type='text'){
-    return `<label class="block mt-4 text-xs font-bold text-slate-500">${label}</label><input type="${type}" step="0.01" value="${esc(value)}" oninput="forgeQuoteSet('${key}',this.value)" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">`;
+    return `<label class="block mt-4 text-xs font-bold text-slate-500">${label}</label><input type="${type}" step="0.01" value="${esc(value)}" onchange="forgeQuoteSet('${key}',this.value)" class="mt-1 w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm">`;
   }
 
   function quoteRow(l,i,q){
     const margin=l.margin===''||l.margin==null?q.defaultMargin:l.margin;
     const sell=sellFromCost(l.cost,margin), ext=sell*num(l.qty||1);
-    return `<tr class="border-t border-slate-100"><td class="px-4 py-3"><input value="${esc(l.description||'')}" oninput="forgeQuoteLine(${i},'description',this.value)" placeholder="2x6x12 SPF, Hardie plank, soffit, trim..." class="w-full px-2 py-2 border border-slate-200 rounded-lg"></td><td class="px-3 py-3"><input type="number" step="0.01" value="${esc(l.qty??1)}" oninput="forgeQuoteLine(${i},'qty',this.value)" class="w-full px-2 py-2 border border-slate-200 rounded-lg"></td><td class="px-3 py-3"><input value="${esc(l.unit||'ea')}" oninput="forgeQuoteLine(${i},'unit',this.value)" class="w-full px-2 py-2 border border-slate-200 rounded-lg"></td><td class="px-3 py-3"><input type="number" step="0.01" value="${esc(l.cost||'')}" oninput="forgeQuoteLine(${i},'cost',this.value)" class="w-full px-2 py-2 border border-slate-200 rounded-lg text-right"></td><td class="px-3 py-3"><input type="number" step="0.1" value="${esc(l.margin??'')}" placeholder="${esc(q.defaultMargin)}" oninput="forgeQuoteLine(${i},'margin',this.value)" class="w-full px-2 py-2 border border-slate-200 rounded-lg text-right"></td><td class="px-3 py-3 text-right font-semibold">${money(sell)}</td><td class="px-3 py-3 text-right font-bold">${money(ext)}</td><td class="px-3 py-3"><button onclick="forgeQuoteRemove(${i})" class="p-2 text-slate-400 hover:text-rose-600">${icon('trash-2','w-4 h-4')}</button></td></tr>`;
+    return `<tr class="border-t border-slate-100"><td class="px-4 py-3"><input value="${esc(l.description||'')}" onchange="forgeQuoteLine(${i},'description',this.value)" placeholder="2x6x12 SPF, Hardie plank, soffit, trim..." class="w-full px-2 py-2 border border-slate-200 rounded-lg"></td><td class="px-3 py-3"><input type="number" step="0.01" value="${esc(l.qty??1)}" onchange="forgeQuoteLine(${i},'qty',this.value)" class="w-full px-2 py-2 border border-slate-200 rounded-lg"></td><td class="px-3 py-3"><input value="${esc(l.unit||'ea')}" onchange="forgeQuoteLine(${i},'unit',this.value)" class="w-full px-2 py-2 border border-slate-200 rounded-lg"></td><td class="px-3 py-3"><input type="number" step="0.01" value="${esc(l.cost||'')}" onchange="forgeQuoteLine(${i},'cost',this.value)" class="w-full px-2 py-2 border border-slate-200 rounded-lg text-right"></td><td class="px-3 py-3"><input type="number" step="0.1" value="${esc(l.margin??'')}" placeholder="${esc(q.defaultMargin)}" onchange="forgeQuoteLine(${i},'margin',this.value)" class="w-full px-2 py-2 border border-slate-200 rounded-lg text-right"></td><td class="px-3 py-3 text-right font-semibold">${money(sell)}</td><td class="px-3 py-3 text-right font-bold">${money(ext)}</td><td class="px-3 py-3"><button onclick="forgeQuoteRemove(${i})" class="p-2 text-slate-400 hover:text-rose-600">${icon('trash-2','w-4 h-4')}</button></td></tr>`;
   }
 
   window.forgeQuoteAddLine=function(){ const q=ensureQuote(); q.lines.push({description:'',qty:1,unit:'ea',cost:'',margin:''}); save(); render(); };
