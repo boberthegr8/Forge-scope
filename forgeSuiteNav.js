@@ -57,13 +57,15 @@
     .then(()=>loadScript('/forgeSidingScope.js','forge-siding-scope-module'))
     .then(()=>{ window.installForgeSidingScope?.(); })
     .then(()=>loadScript('/forgeWorkspace.js','forge-workspace-module'))
-    .then(()=>{ window.installForgeWorkspace?.(); inject(); if(typeof render==='function') render(); })
+    .then(()=>loadScript('/forgeBomEvolution.js','forge-bom-evolution-module'))
+    .then(()=>{ window.installForgeBomEvolution?.(); window.installForgeWorkspace?.(); inject(); if(typeof render==='function') render(); })
     .catch(err=>{ console.error('Forge module load failed',err); inject(); });
 
   if(typeof render==='function'){
     const priorRender=render;
     render=function forgeSuiteNavigationRenderWrapper(){
       window.installForgeSidingScope?.();
+      window.installForgeBomEvolution?.();
       priorRender();
       inject();
     };
