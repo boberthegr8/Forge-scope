@@ -60,6 +60,7 @@
     .then(()=>{ window.installForgeSidingScope?.(); })
     .then(()=>loadScript('/forgeWorkspace.js','forge-workspace-module'))
     .then(()=>loadScript('/forgeBomEvolution.js','forge-bom-evolution-module'))
+    .then(()=>loadScript('/forgeAutoScopeCompat.js','forge-auto-scope-compat-module'))
     .then(()=>loadScript('/forgeAutoScopeAI.js','forge-auto-scope-ai-module'))
     .then(()=>loadScript('/forgeAutoScopeFinalize.js','forge-auto-scope-finalize-module'))
     .then(()=>{ window.installForgeBomEvolution?.(); window.installForgeWorkspace?.(); window.installForgeAutoScopeAI?.(); window.installForgeAutoScopeFinalize?.(); inject(); if(typeof render==='function') render(); })
