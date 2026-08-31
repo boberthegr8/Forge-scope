@@ -43,7 +43,7 @@
     injectSidingShortcut();
     window.installForgeAutoScopeAI?.();
     window.installForgeAutoScopeApiSettings?.();
-    window.installForgeAutoScopeFinalize?.();
+    window.installForgeAutoScopeSeparated?.();
     if(window.lucide) lucide.createIcons();
   }
   window.forgeSuiteInject=inject;
@@ -64,8 +64,8 @@
     .then(()=>loadScript('/forgeAutoScopeCompat.js','forge-auto-scope-compat-module'))
     .then(()=>loadScript('/forgeAutoScopeAI.js','forge-auto-scope-ai-module'))
     .then(()=>loadScript('/forgeAutoScopeApiSettings.js','forge-auto-scope-api-settings-module'))
-    .then(()=>loadScript('/forgeAutoScopeFinalize.js','forge-auto-scope-finalize-module'))
-    .then(()=>{ window.installForgeBomEvolution?.(); window.installForgeWorkspace?.(); window.installForgeAutoScopeAI?.(); window.installForgeAutoScopeApiSettings?.(); window.installForgeAutoScopeFinalize?.(); inject(); if(typeof render==='function') render(); })
+    .then(()=>loadScript('/forgeAutoScopeSeparated.js','forge-auto-scope-separated-module'))
+    .then(()=>{ window.installForgeBomEvolution?.(); window.installForgeWorkspace?.(); window.installForgeAutoScopeAI?.(); window.installForgeAutoScopeApiSettings?.(); window.installForgeAutoScopeSeparated?.(); inject(); if(typeof render==='function') render(); })
     .catch(err=>{ console.error('Forge module load failed',err); inject(); });
 
   if(typeof render==='function'){
@@ -75,7 +75,7 @@
       window.installForgeBomEvolution?.();
       window.installForgeAutoScopeAI?.();
       window.installForgeAutoScopeApiSettings?.();
-      window.installForgeAutoScopeFinalize?.();
+      window.installForgeAutoScopeSeparated?.();
       priorRender();
       inject();
     };
