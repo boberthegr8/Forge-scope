@@ -41,6 +41,7 @@
     if(!nav) return;
     if(!document.getElementById('forge-suite-nav')) nav.insertAdjacentHTML('afterbegin',markup());
     injectSidingShortcut();
+    window.installForgeAutoScopeAI?.();
     if(window.lucide) lucide.createIcons();
   }
   window.forgeSuiteInject=inject;
@@ -58,7 +59,8 @@
     .then(()=>{ window.installForgeSidingScope?.(); })
     .then(()=>loadScript('/forgeWorkspace.js','forge-workspace-module'))
     .then(()=>loadScript('/forgeBomEvolution.js','forge-bom-evolution-module'))
-    .then(()=>{ window.installForgeBomEvolution?.(); window.installForgeWorkspace?.(); inject(); if(typeof render==='function') render(); })
+    .then(()=>loadScript('/forgeAutoScopeAI.js','forge-auto-scope-ai-module'))
+    .then(()=>{ window.installForgeBomEvolution?.(); window.installForgeWorkspace?.(); window.installForgeAutoScopeAI?.(); inject(); if(typeof render==='function') render(); })
     .catch(err=>{ console.error('Forge module load failed',err); inject(); });
 
   if(typeof render==='function'){
@@ -66,6 +68,7 @@
     render=function forgeSuiteNavigationRenderWrapper(){
       window.installForgeSidingScope?.();
       window.installForgeBomEvolution?.();
+      window.installForgeAutoScopeAI?.();
       priorRender();
       inject();
     };
