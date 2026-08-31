@@ -15,10 +15,10 @@
     const key=(typeof geminiSessionKey!=='undefined'&&geminiSessionKey)||localStorage.getItem(STORAGE_KEY)||'';
     const model=(typeof geminiCompareModel!=='undefined'&&geminiCompareModel)||localStorage.getItem(MODEL_KEY)||'gemini-3.7-flash';
     return `<section id="auto-api-settings" class="auto-card auto-api-settings no-print">
-      <div class="auto-head"><div><div class="auto-kicker">FORGE AI SETTINGS</div><h3>Gemini API Key</h3><p>Paste your Gemini API key here. Automatic Scope will use this key for Scope, Takeoff and BOM Audit.</p></div><span class="auto-api-badge ${key?'connected':''}">${key?'KEY SAVED':'KEY REQUIRED'}</span></div>
+      <div class="auto-head"><div><div class="auto-kicker">FORGE AI SETTINGS</div><h3>Gemini API Key</h3><p>Your key is used only when you explicitly run AI Stages 1, 2, 3 or 5. Stage 4 is generated locally and uses no API call.</p></div><span class="auto-api-badge ${key?'connected':''}">${key?'KEY SAVED':'KEY REQUIRED'}</span></div>
       <div class="auto-api-grid"><label>Gemini API Key<input id="autoGeminiKey" type="password" autocomplete="off" value="${esc(key)}" placeholder="Paste Gemini API key"></label><label>AI Model<select id="autoGeminiModel"><option value="gemini-3.7-flash" ${model==='gemini-3.7-flash'?'selected':''}>Gemini 3.7 Flash</option><option value="gemini-3.6-flash" ${model==='gemini-3.6-flash'?'selected':''}>Gemini 3.6 Flash</option><option value="gemini-2.5-pro" ${model==='gemini-2.5-pro'?'selected':''}>Gemini 2.5 Pro</option></select></label></div>
       <div class="auto-api-actions"><button class="auto-api-save" onclick="autoScopeSaveApiKey()">Save AI Settings</button><button onclick="autoScopeClearApiKey()">Clear Key</button><button onclick="autoScopeToggleApiKey()">Show / Hide</button></div>
-      <div id="autoApiStatus" class="auto-api-note">${key?'API key is saved in this browser and ready to use.':'Enter a Gemini API key before running Automatic Scope AI.'}</div>
+      <div id="autoApiStatus" class="auto-api-note">${key?'API key is saved in this browser and ready to use. No AI call runs until you press a stage button.':'Enter a Gemini API key before running an AI stage.'}</div>
     </section>`;
   }
   function styles(){
