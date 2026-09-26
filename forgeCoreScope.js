@@ -301,8 +301,8 @@
       const result = await syncScope(scope);
       if (result) coreState.notice = `Scope linked to Reader document in Forge Core • v${result.version_number}.`;
     } catch (error) {
-      coreState.error = `The worksheet is safe in this browser, but Core linking failed: ${error?.message || error}`;
-      if (typeof notifySaved === 'function') notifySaved('Saved locally • Core sync needs attention');
+      coreState.error = `Core linking failed. Keep this page open and retry saving: ${error?.message || error}`;
+      if (typeof notifySaved === 'function') notifySaved(window.ForgeSuite?.managed ? 'Not saved • Keep this page open and retry' : 'Saved locally • Core sync needs attention');
     }
   }
 
@@ -462,6 +462,14 @@
   if (typeof saveCurrent === 'function') {
     const priorSaveCurrent = saveCurrent;
     saveCurrent = function forgeCoreScopeSaveWrapper() {
+      if (window.ForgeSuite?.managed) {
+        if (typeof current === 'undefined' || !current) return;
+        if (typeof notifySaved === 'function') notifySaved('Saving to Forge Core…');
+        return syncScope(current).then(()=>{if(typeof render==='function')render();}).catch(error=>{
+          console.error('Forge Core Scope save failed',error);
+          if(typeof notifySaved==='function')notifySaved('Not saved • Keep this page open and retry');
+        });
+      }
       priorSaveCurrent();
       if (typeof current !== 'undefined' && current && coreState.context?.organizationId) {
         void syncScope(current).catch(error => {
@@ -498,6 +506,9 @@
     const { data, error } = await client.rpc('forge_link_scope_to_crm', { p_scope_id: scope.coreScopeId });
     if (error) throw error;
     scope.core.projectId = data;
+    const {data: linked,error: readError}=await client.from('scopes').select('customer_id').eq('id',scope.coreScopeId).single();
+    if(readError)throw readError;
+    scope.core.customerId=linked.customer_id;
     return data;
   }
   window.ForgeScopeCore = { openPanel, loadCore, syncScope, getContext, linkToCRM };
@@ -508,3 +519,4 @@
   void getContext().then(context => { coreState.context = context; injectCoreButton(); });
   injectCoreButton();
 })();
+
