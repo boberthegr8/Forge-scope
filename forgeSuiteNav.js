@@ -1,11 +1,11 @@
 (() => {
   const MODULES = [
-    { key:'home', label:'Home', href:'https://forge2-navy.vercel.app' },
-    { key:'crm', label:'CRM', href:'https://forge-crm-six.vercel.app' },
-    { key:'reader', label:'Reader', href:'https://robquotes.vercel.app' },
+    { key:'home', label:'Home', href:'https://app.forgehub.dev' },
+    { key:'crm', label:'CRM', href:'https://crm.forgehub.dev' },
+    { key:'reader', label:'Reader', href:'https://reader.forgehub.dev' },
     { key:'scope', label:'Scope', active:true },
-    { key:'manufacturing', label:'Manufacturing', href:'https://forgemfg.vercel.app' },
-    { key:'portal', label:'Portal', href:'https://forge-portal-pi.vercel.app' }
+    { key:'manufacturing', label:'Manufacturing', href:'https://manufacturing.forgehub.dev' },
+    { key:'portal', label:'Portal', href:'https://portal.forgehub.dev' }
   ];
 
   function installStyles(){

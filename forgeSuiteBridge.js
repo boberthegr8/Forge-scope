@@ -1,7 +1,7 @@
 (() => {
   const BRIDGE_PROTOCOL = 'forge-suite-bridge';
   const BRIDGE_VERSION = 1;
-  const DEFAULT_CRM_URL = 'https://forge-crm-six.vercel.app';
+  const DEFAULT_CRM_URL = 'https://crm.forgehub.dev';
 
   function installResidentialTemplates() {
     if (typeof TYPES === 'undefined' || typeof SCHEMAS === 'undefined' || typeof COMMON_PROJECT === 'undefined') return false;
@@ -223,7 +223,23 @@
     button.classList.toggle('cursor-wait', disabled);
   }
 
-  function sendToCRM() {
+  async function sendToCRM() {
+    if (window.ForgeSuite?.managed) {
+      if (typeof current === 'undefined' || !current) return;
+      const targetWindow = window.open('about:blank', '_blank');
+      setButtonState('Saving to Forge…', true);
+      try {
+        await window.ForgeScopeCore.linkToCRM(current);
+        if (targetWindow) targetWindow.location.replace('https://crm.forgehub.dev/#/projects');
+        else window.location.assign('https://crm.forgehub.dev/#/projects');
+        setButtonState('Saved to CRM', false);
+      } catch (error) {
+        targetWindow?.close();
+        setButtonState('Send to CRM', false);
+        window.alert('CRM handoff was not completed: ' + (error?.message || error));
+      }
+      return;
+    }
     const payload = bridgePayload();
     if (!payload) {
       window.alert('Open or create a Forge Scope first.');

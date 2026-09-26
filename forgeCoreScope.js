@@ -22,10 +22,10 @@
       clientPromise = import(/* @vite-ignore */ CONFIG.supabaseJsUrl).then(mod => mod.createClient(
         CONFIG.url,
         CONFIG.publishableKey,
-        { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
+        { auth: window.ForgeSuite?.auth || { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
       ));
     }
-    return clientPromise;
+    return clientPromise.then(client => window.ForgeSuite ? window.ForgeSuite.connect(client) : client);
   }
 
   function h(value = '') {
@@ -152,7 +152,7 @@
       const client = await coreClient();
       const { error } = await client.auth.signInWithOtp({
         email,
-        options: { shouldCreateUser:false, emailRedirectTo:`${window.location.origin}${window.location.pathname}` }
+        options: { shouldCreateUser:false, emailRedirectTo:'https://app.forgehub.dev/account.html' }
       });
       if (error) throw error;
       coreState.notice = 'Passwordless Forge sign-in link sent. Open it on this device, then return to Scope.';
@@ -371,7 +371,7 @@
       <div><div class="forge-core-eyebrow">FORGE CORE</div><h2>Forge Scope + Reader</h2><p>${h(coreState.context.organizationName)} • ${h(coreState.context.locationName)} • ${h(coreState.context.role)}</p></div>
       <div class="forge-core-header-actions"><button type="button" class="forge-core-secondary" id="forge-core-refresh">Refresh</button><button type="button" class="forge-core-secondary" id="forge-core-signout">Sign out</button></div>
     </div>
-    <section class="forge-core-section"><div class="forge-core-section-title"><div><strong>Reader documents</strong><span>Select the Scope template yourself; Reader never guesses the building type.</span></div><a href="https://robquotes.vercel.app" target="_blank" rel="noreferrer">Open Reader ↗</a></div>${readerCards()}</section>
+    <section class="forge-core-section"><div class="forge-core-section-title"><div><strong>Reader documents</strong><span>Select the Scope template yourself; Reader never guesses the building type.</span></div><a href="https://reader.forgehub.dev" target="_blank" rel="noreferrer">Open Reader ↗</a></div>${readerCards()}</section>
     <section class="forge-core-section"><div class="forge-core-section-title"><div><strong>Core scopes</strong><span>Reopen manual, AI-assisted or Reader-linked worksheets from another browser.</span></div></div>${coreScopeCards()}</section>`;
   }
 
@@ -492,7 +492,15 @@
     };
   }
 
-  window.ForgeScopeCore = { openPanel, loadCore, syncScope, getContext };
+  async function linkToCRM(scope) {
+    await syncScope(scope);
+    const client = await coreClient();
+    const { data, error } = await client.rpc('forge_link_scope_to_crm', { p_scope_id: scope.coreScopeId });
+    if (error) throw error;
+    scope.core.projectId = data;
+    return data;
+  }
+  window.ForgeScopeCore = { openPanel, loadCore, syncScope, getContext, linkToCRM };
 
   void coreClient().then(client => {
     client.auth.onAuthStateChange(() => window.setTimeout(() => void loadCore(), 0));

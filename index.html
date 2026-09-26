@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/suite-client.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Forge Scope — Estimator Intake</title>
@@ -243,7 +244,7 @@ function newProject(type='barn', mode='manual'){
   return { id:'scope_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), type, mode, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), fields, openings:[] };
 }
 
-let saved = JSON.parse(localStorage.getItem('forgeScopeProjects') || '[]');
+let saved = (window.ForgeSuite?.managed ? [] : JSON.parse(localStorage.getItem('forgeScopeProjects') || '[]'));
 let current = null;
 let view = 'dashboard';
 let searchTerm = '';
@@ -251,7 +252,7 @@ let bomCompareState = { scope:null, bom:null, plans:[], result:null, loading:fal
 let geminiSessionKey = '';
 let geminiCompareModel = 'gemini-3.7-flash';
 
-function persist(){ localStorage.setItem('forgeScopeProjects', JSON.stringify(saved)); }
+function persist(){ if (!window.ForgeSuite?.managed) localStorage.setItem('forgeScopeProjects', JSON.stringify(saved)); }
 function upsertCurrent(){
   if(!current) return;
   current.updatedAt = new Date().toISOString();
