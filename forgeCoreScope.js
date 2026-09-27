@@ -511,7 +511,7 @@
     scope.core.customerId=linked.customer_id;
     return data;
   }
-  window.ForgeScopeCore = { openPanel, loadCore, syncScope, getContext, linkToCRM };
+  window.ForgeScopeCore = { openPanel, loadCore, syncScope, getContext, linkToCRM, coreClient };
 
   void coreClient().then(client => {
     client.auth.onAuthStateChange(() => window.setTimeout(() => void loadCore(), 0));
