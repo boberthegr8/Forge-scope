@@ -268,10 +268,10 @@ function layout(content){
   return `
   <aside class="w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col shadow-2xl no-print">
     <div class="p-7 border-b border-slate-800">
-      <div class="flex items-center gap-3">
+      <a href="https://app.forgehub.dev/" aria-label="Back to Forge Home" title="Back to Forge Home" style="color:inherit;text-decoration:none" class="flex items-center gap-3">
         <div class="w-10 h-10 bg-indigo-600 rounded-xl grid place-items-center shadow-lg shadow-indigo-950/30">${icon('clipboard-check','w-6 h-6')}</div>
         <div><div class="font-extrabold tracking-tight text-xl">FORGE</div><div class="text-[10px] uppercase tracking-[.24em] text-slate-500 font-bold">Scope</div></div>
-      </div>
+      </a>
     </div>
     <nav class="p-4 space-y-1 flex-1">
       ${navBtn('dashboard','layout-dashboard','Dashboard')}
