@@ -5,7 +5,8 @@
     { key:'reader', label:'Reader', href:'https://reader.forgehub.dev' },
     { key:'scope', label:'Scope', active:true },
     { key:'manufacturing', label:'Manufacturing', href:'https://manufacturing.forgehub.dev' },
-    { key:'portal', label:'Portal', href:'https://portal.forgehub.dev' }
+    { key:'portal', label:'Portal', href:'https://portal.forgehub.dev' },
+    { key:'frame', label:'Frame · 3D Takeoff', href:'https://frame.forgehub.dev' }
   ];
 
   function installStyles(){
