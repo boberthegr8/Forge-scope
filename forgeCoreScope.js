@@ -49,6 +49,33 @@
     };
   }
 
+  function toLocalScope(row) {
+    const sd = row.structured_data || {};
+    return {
+      ...sd,
+      id: sd.id || row.id,
+      type: sd.type || row.scope_type,
+      mode: sd.mode || 'manual',
+      fields: sd.fields || {},
+      openings: sd.openings || [],
+      updatedAt: row.updated_at,
+      coreScopeId: row.id,
+      coreVersion: row.current_version,
+      coreSyncedAt: row.updated_at
+    };
+  }
+
+  function applyScopeRows(rows) {
+    if (typeof saved === 'undefined') return;
+    const openId = (typeof current !== 'undefined' && current) ? current.id : null;
+    saved = (rows || []).map(toLocalScope);
+    if (openId) {
+      const match = saved.find(p => p.id === openId);
+      if (match) current = JSON.parse(JSON.stringify(match));
+    }
+    if (typeof render === 'function') render();
+  }
+
   function worksheetForCore(scope) {
     const clean = JSON.parse(JSON.stringify(scope || {}));
     // Local UI/cache timestamps are intentionally excluded from Core content hashing/versioning.
@@ -103,6 +130,7 @@
       if (!context?.organizationId) {
         coreState.documents = [];
         coreState.scopes = [];
+        applyScopeRows([]);
         return;
       }
       const client = await coreClient();
@@ -132,6 +160,7 @@
         };
       });
       coreState.scopes = scopesResult.data || [];
+      applyScopeRows(coreState.scopes);
     } catch (error) {
       coreState.error = error?.message || String(error);
     } finally {
@@ -511,7 +540,7 @@
     scope.core.customerId=linked.customer_id;
     return data;
   }
-  window.ForgeScopeCore = { openPanel, loadCore, syncScope, getContext, linkToCRM, coreClient };
+  window.ForgeScopeCore = { openPanel, loadCore, syncScope, getContext, linkToCRM, coreClient, toLocalScope, applyScopeRows };
 
   void coreClient().then(client => {
     client.auth.onAuthStateChange(() => window.setTimeout(() => void loadCore(), 0));
