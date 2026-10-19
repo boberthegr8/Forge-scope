@@ -205,7 +205,7 @@
     }
   }
 
-  async function syncScope(scope = (typeof current !== 'undefined' ? current : null)) {
+  async function syncScopeRaw(scope = (typeof current !== 'undefined' ? current : null)) {
     if (!scope) return null;
     const context = await getContext();
     if (!context?.organizationId) throw new Error('Sign into Forge Core before saving this scope.');
@@ -539,6 +539,28 @@
     if(readError)throw readError;
     scope.core.customerId=linked.customer_id;
     return data;
+  }
+  const _syncQueue = new WeakMap();
+  function syncScope(scope = (typeof current !== 'undefined' ? current : null)) {
+    if (!scope) return Promise.resolve(null);
+    const existing = _syncQueue.get(scope);
+    if (!existing) {
+      const p = syncScopeRaw(scope).finally(() => {
+        const cur = _syncQueue.get(scope);
+        if (cur && cur.queued) {
+          _syncQueue.delete(scope);
+          const resolvers = cur.queuedResolvers;
+          const next = syncScope(scope);
+          next.then(r => resolvers.forEach(fn => fn.resolve(r)), e => resolvers.forEach(fn => fn.reject(e)));
+        } else {
+          _syncQueue.delete(scope);
+        }
+      });
+      _syncQueue.set(scope, { promise: p, queued: false, queuedResolvers: [] });
+      return p;
+    }
+    existing.queued = true;
+    return new Promise((resolve, reject) => { existing.queuedResolvers.push({ resolve, reject }); });
   }
   window.ForgeScopeCore = { openPanel, loadCore, syncScope, getContext, linkToCRM, coreClient, toLocalScope, applyScopeRows };
 
