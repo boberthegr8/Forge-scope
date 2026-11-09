@@ -562,12 +562,57 @@
     existing.queued = true;
     return new Promise((resolve, reject) => { existing.queuedResolvers.push({ resolve, reject }); });
   }
-  window.ForgeScopeCore = { openPanel, loadCore, syncScope, getContext, linkToCRM, coreClient, toLocalScope, applyScopeRows };
+    async function openWorkspaceRef({ scopeId = '', projectId = '' } = {}) {
+    const localMatch = (saved || []).find(scope =>
+      (scopeId && (scope.id === scopeId || scope.coreScopeId === scopeId)) ||
+      (projectId && (scope.core?.projectId === projectId || scope.coreProjectId === projectId))
+    );
+    let record = localMatch || null;
+    if (!record) {
+      await loadCore();
+      const row = coreState.scopes.find(item =>
+        (scopeId && (item.id === scopeId || item.structured_data?.id === scopeId)) ||
+        (projectId && item.project_id === projectId)
+      );
+      record = row ? toLocalScope(row) : null;
+    }
+    if (!record) return false;
+    current = JSON.parse(JSON.stringify(record));
+    view = 'workspace';
+    if (typeof render === 'function') render();
+    return true;
+  }
+  window.ForgeScopeCore = { openPanel, loadCore, syncScope, getContext, linkToCRM, coreClient, toLocalScope, applyScopeRows, openWorkspaceRef };
 
   void coreClient().then(client => {
     client.auth.onAuthStateChange(() => window.setTimeout(() => void loadCore(), 0));
   });
   void getContext().then(context => { coreState.context = context; injectCoreButton(); });
   injectCoreButton();
+  const routeParams = new URLSearchParams(window.location.search);
+  const routeScopeId = routeParams.get('scopeId') || '';
+  const routeProjectId = routeParams.get('projectId') || '';
+  const routeJobs = routeParams.get('view') === 'jobs';
+  if (routeScopeId || routeProjectId || routeJobs) {
+    let tries = 0;
+    const openRoute = () => {
+      if (typeof window.openForgeJobsPage !== 'function' || !window.ForgeScopeCore?.openWorkspaceRef) {
+        if (tries++ < 100) return window.setTimeout(openRoute, 100);
+        return;
+      }
+      if (routeScopeId || routeProjectId) {
+        window.ForgeScopeCore.openWorkspaceRef({ scopeId: routeScopeId, projectId: routeProjectId }).then(opened => {
+          if (!opened) window.openForgeJobsPage();
+        }).catch(error => {
+          console.error('Forge project workspace could not be opened', error);
+          window.openForgeJobsPage();
+        });
+      } else {
+        window.openForgeJobsPage();
+      }
+    };
+    openRoute();
+  }
 })();
+
 
