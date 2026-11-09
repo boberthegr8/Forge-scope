@@ -568,6 +568,20 @@
       (projectId && (scope.core?.projectId === projectId || scope.coreProjectId === projectId))
     );
     let record = localMatch || null;
+    if (!record && projectId) {
+      const context = await getContext();
+      if (context?.organizationId) {
+        const client = await coreClient();
+        const { data, error } = await client.from('scopes')
+          .select('id,title,scope_type,status,current_version,structured_data,source_document_id,project_id,customer_id,updated_at,source')
+          .eq('organization_id', context.organizationId)
+          .eq('project_id', projectId)
+          .in('source', ['forge-scope','forge-scope-reader'])
+          .order('updated_at', { ascending: false }).limit(1).maybeSingle();
+        if (error) throw error;
+        if (data) record = toLocalScope(data);
+      }
+    }
     if (!record) {
       await loadCore();
       const row = coreState.scopes.find(item =>
