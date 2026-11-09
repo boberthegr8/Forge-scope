@@ -45,16 +45,19 @@
     const hasScope=!!current;
     const cmp=current?.bomComparison?.result;
     const lines=current?.quote?.lines?.length||0;
+    const frameSrc=hasScope?'https://frame.forgehub.dev/?embed=1&readonly=1&project='+encodeURIComponent(current.id)+'&name='+encodeURIComponent(projectName()):'';
     return `<div class="max-w-7xl mx-auto fade-in">
-      <div class="mb-7"><div class="text-xs font-extrabold uppercase tracking-[.18em] text-indigo-600">Forge Job Workspace</div><h2 class="text-3xl font-extrabold mt-1">${hasScope?esc(projectName()):'Plans → Scope → BOM → Quote'}</h2><p class="text-slate-500 mt-2">One job, one workspace. Build the scope, compare it against the BOM and drawings, then price the final material list.</p></div>
+      <div class="mb-7"><div class="text-xs font-extrabold uppercase tracking-[.18em] text-indigo-600">Forge Job Workspace</div><h2 class="text-3xl font-extrabold mt-1">${hasScope?esc(projectName()):'Plans → Scope → BOM → Quote'}</h2><p class="text-slate-500 mt-2">One project workspace across Forge. This view opens the saved scope and BOM, then loads its saved 3D model when one is linked.</p></div>
       ${!hasScope?`<div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-6"><div class="font-bold text-amber-950">Start or open a scope first.</div><p class="text-sm text-amber-800 mt-1">The workspace keeps the scope, comparison result and quote tied to the same job.</p><div class="flex gap-3 mt-4"><button onclick="go('new')" class="px-4 py-2.5 bg-slate-900 text-white rounded-lg font-semibold">New Scope</button><button onclick="go('saved')" class="px-4 py-2.5 bg-white border border-amber-300 rounded-lg font-semibold">Open Saved Scope</button></div></div>`:''}
+      ${hasScope?`<section class="bg-white border border-slate-200 rounded-2xl p-5 mb-6 shadow-sm"><div class="flex flex-col md:flex-row md:items-center justify-between gap-3"><div><h3 class="font-bold text-lg">3D Model</h3><p class="text-sm text-slate-500 mt-1">The viewer checks for this project’s already-saved Frame model. It does not create a new model when you open the workspace.</p></div><a class="px-4 py-2.5 bg-slate-900 text-white rounded-lg font-semibold text-sm text-center" href="${frameSrc}" target="_blank" rel="noopener">Open 3D viewer</a></div><iframe src="${frameSrc}" title="Saved 3D model for ${esc(projectName())}" loading="lazy" class="w-full mt-4 rounded-xl border border-slate-200 bg-slate-950" style="height: min(65vh, 620px); min-height: 360px"></iframe></section>`:''}
+      ${cmp?`<section class="mb-6">${typeof bomCompareResultView==='function'?bomCompareResultView(cmp):`<div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"><div class="font-bold">Saved BOM comparison</div><p class="text-sm text-slate-500 mt-1">This saved result is available; it has not been rerun.</p><button onclick="view='bom';render()" class="mt-4 px-4 py-2.5 bg-slate-900 text-white rounded-lg font-semibold text-sm">Open saved BOM</button></div>`}</section>`:`<section class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6"><div class="font-bold text-amber-950">No saved BOM comparison yet</div><p class="text-sm text-amber-800 mt-1">You can still use the scope, quote and customer documents. Run a comparison only when you choose to.</p></section>`}
       <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
         ${card('1','Scope Worksheet','clipboard-check',hasScope?'Open the estimator worksheet for this job.':'Create the job scope first.',hasScope?"view='editor';render()":"go('new')",hasScope?'Open Scope':'New Scope','indigo')}
-        ${card('2','Plans + Scope + BOM','scan-search',cmp?'Comparison completed and saved to this job.':'Upload all three and run the combined QA comparison.',"view='bom';render()",cmp?'Review Comparison':'Run Comparison','emerald')}
+        ${card('2','Saved BOM Review','scan-search',cmp?'Open the comparison saved with this project.':'No comparison is saved yet; the project remains available.',cmp?"view='bom';render()":"view='bom';render()",cmp?'Review Saved BOM':'Open BOM Review','emerald')}
         ${card('3','Quote Builder','calculator',lines?`${lines} priced line item${lines===1?'':'s'} saved.`:'Price the final reviewed material list with gross margin.',"view='quote';render()",lines?'Open Quote':'Build Quote','orange')}
-        ${card('4','Customer Output','file-down','Generate the scope PDF, comparison report, and customer quote from the same job.',hasScope?"view='summary';render()":"go('new')",'Outputs','slate')}
+        ${card('4','Customer Output','file-down','Open the saved scope summary and project output from the same job.',hasScope?"view='summary';render()":"go('new')",'Open Outputs','slate')}
       </div>
-      ${hasScope?`<div class="mt-7 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"><div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4"><div><div class="font-bold text-lg">${esc(projectName())}</div><div class="text-sm text-slate-500 mt-1">${esc(customerName())} • ${TYPES[current.type]?.label||current.type}</div></div><div class="flex flex-wrap gap-2"><span class="px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">Scope ${Object.values(current.fields||{}).filter(f=>String(f.value||'').trim()).length} fields</span><span class="px-3 py-1.5 rounded-full text-xs font-bold ${cmp?'bg-emerald-50 text-emerald-700':'bg-slate-100 text-slate-500'}">${cmp?'BOM compared':'BOM not compared'}</span><span class="px-3 py-1.5 rounded-full text-xs font-bold ${lines?'bg-orange-50 text-orange-700':'bg-slate-100 text-slate-500'}">${lines?lines+' quote lines':'Quote not started'}</span></div></div></div>`:''}
+      ${hasScope?`<div class="mt-7 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"><div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4"><div><div class="font-bold text-lg">${esc(projectName())}</div><div class="text-sm text-slate-500 mt-1">${esc(customerName())} • ${TYPES[current.type]?.label||current.type}</div></div><div class="flex flex-wrap gap-2"><span class="px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">Scope ${Object.values(current.fields||{}).filter(f=>String(f.value||'').trim()).length} fields</span><span class="px-3 py-1.5 rounded-full text-xs font-bold ${cmp?'bg-emerald-50 text-emerald-700':'bg-slate-100 text-slate-500'}">${cmp?'Saved BOM comparison':'No saved BOM comparison'}</span><span class="px-3 py-1.5 rounded-full text-xs font-bold ${lines?'bg-orange-50 text-orange-700':'bg-slate-100 text-slate-500'}">${lines?lines+' quote lines':'Quote not started'}</span></div></div></div>`:''}
     </div>`;
   }
 
@@ -62,6 +65,13 @@
     const tones={indigo:'bg-indigo-50 text-indigo-600',emerald:'bg-emerald-50 text-emerald-600',orange:'bg-orange-50 text-orange-600',slate:'bg-slate-100 text-slate-600'};
     return `<section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col"><div class="flex items-center justify-between"><div class="w-11 h-11 rounded-xl ${tones[tone]} grid place-items-center">${icon(ic,'w-6 h-6')}</div><span class="text-xs font-extrabold text-slate-300">STEP ${step}</span></div><h3 class="font-bold text-lg mt-5">${title}</h3><p class="text-sm text-slate-500 mt-2 leading-6 flex-1">${body}</p><button onclick="${action}" class="mt-5 w-full px-4 py-3 rounded-lg bg-slate-900 text-white font-semibold text-sm">${label}</button></section>`;
   }
+
+  function jobsView(){
+    const projects=[...(saved||[])].sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
+    return `<div class="max-w-7xl mx-auto fade-in"><div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6"><div><div class="text-xs font-extrabold uppercase tracking-[.18em] text-indigo-600">Jobs &amp; 3D Models</div><h2 class="text-2xl font-extrabold mt-1">Saved Forge projects</h2><p class="text-slate-500 mt-2">Open a project workspace to view its saved scope and BOM and check for an existing 3D model.</p></div><button onclick="go('new')" class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg font-semibold text-sm">New Scope</button></div><div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">${projects.length?projects.map(p=>{const name=p.fields?.projectName?.value||'Untitled Scope';const cmp=!!p.bomComparison?.result;return `<div class="p-5 border-b border-slate-100 last:border-0 flex flex-col sm:flex-row sm:items-center gap-3"><div class="min-w-0 flex-1"><button onclick="openSavedScopeWorkspace('${esc(p.id)}')" class="font-semibold text-left hover:text-indigo-700 underline decoration-transparent hover:decoration-current">${esc(name)}</button><div class="text-xs text-slate-500 mt-1">${esc(p.fields?.customer?.value||'No customer')} • Updated ${fmtDate(p.updatedAt)}</div></div><span class="text-xs rounded-full px-2.5 py-1 ${cmp?'bg-emerald-50 text-emerald-700':'bg-slate-100 text-slate-500'}">${cmp?'Saved BOM':'No saved BOM'}</span><button onclick="openSavedScopeWorkspace('${esc(p.id)}')" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-semibold">Open workspace</button></div>`}).join(''):`<div class="p-12 text-center text-slate-500">No saved Forge projects yet. Create a scope first, then it will appear here.</div>`}</div></div>`;
+  }
+  window.openSavedScopeWorkspace=function(id){const scope=(saved||[]).find(p=>p.id===id);if(scope){current=JSON.parse(JSON.stringify(scope));view='workspace';render();return true;}return window.ForgeScopeCore?.openWorkspaceRef({scopeId:id})||false;};
+  window.openForgeJobsPage=function(){view='jobs';render();};
 
   function quoteView(){
     if(!current) return workspaceView();
@@ -111,7 +121,7 @@
     if(!nav) return;
     if(!document.getElementById('forge-workspace-nav')){
       const first=nav.querySelector('button');
-      first?.insertAdjacentHTML('beforebegin', `<div id="forge-job-label" class="pb-2 px-4 text-[10px] font-bold uppercase tracking-[.2em] text-slate-500">Job</div><button id="forge-workspace-nav" onclick="view='workspace';render()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition ${view==='workspace'?'bg-slate-800 text-white':'text-slate-400 hover:text-white hover:bg-slate-800/60'}">${icon('briefcase-business')}<span class="font-medium">Job Workspace</span></button><button id="forge-quote-nav" onclick="view='quote';render()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition ${view==='quote'?'bg-slate-800 text-white':'text-slate-400 hover:text-white hover:bg-slate-800/60'}">${icon('calculator')}<span class="font-medium">Quote</span></button>`);
+      first?.insertAdjacentHTML('beforebegin', `<div id="forge-job-label" class="pb-2 px-4 text-[10px] font-bold uppercase tracking-[.2em] text-slate-500">Job</div><button id="forge-workspace-nav" onclick="view='workspace';render()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition ${view==='workspace'?'bg-slate-800 text-white':'text-slate-400 hover:text-white hover:bg-slate-800/60'}">${icon('briefcase-business')}<span class="font-medium">Job Workspace</span></button><button id="forge-jobs-nav" onclick="view='jobs';render()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition ${view==='jobs'?'bg-slate-800 text-white':'text-slate-400 hover:text-white hover:bg-slate-800/60'}">${icon('boxes')}<span class="font-medium">Jobs &amp; 3D Models</span></button><button id="forge-quote-nav" onclick="view='quote';render()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition ${view==='quote'?'bg-slate-800 text-white':'text-slate-400 hover:text-white hover:bg-slate-800/60'}">${icon('calculator')}<span class="font-medium">Quote</span></button>`);
     }
     if(window.lucide) lucide.createIcons();
   }
@@ -120,8 +130,8 @@
     if(installed) return; installed=true;
     const priorRender=render;
     render=function forgeWorkspaceRender(){
-      if(view==='workspace' || view==='quote'){
-        const content=view==='workspace'?workspaceView():quoteView();
+      if(view==='workspace' || view==='quote' || view==='jobs'){
+        const content=view==='workspace'?workspaceView():view==='jobs'?jobsView():quoteView();
         document.getElementById('app').innerHTML=layout(content);
         injectNav();
         if(typeof window.forgeSuiteInject==='function') window.forgeSuiteInject();
@@ -132,7 +142,7 @@
       injectNav();
     };
     const priorTitle=pageTitle;
-    pageTitle=function(){ if(view==='workspace') return 'Job Workspace'; if(view==='quote') return 'Quote Builder'; return priorTitle(); };
+    pageTitle=function(){ if(view==='workspace') return 'Job Workspace'; if(view==='jobs') return 'Jobs & 3D Models'; if(view==='quote') return 'Quote Builder'; return priorTitle(); };
     injectNav();
   };
 })();
