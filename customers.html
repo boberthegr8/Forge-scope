@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Customer Portal · Forge</title>
+<link rel="stylesheet" href="/account.css"><link rel="stylesheet" href="/customers.css"></head>
+<body>
+<header><a class="brand" href="https://app.forgehub.dev/">F <span>FORGE <small>CUSTOMER PORTAL</small></span></a><nav><a href="https://app.forgehub.dev/">Home</a><a href="https://scope.forgehub.dev/job.html">Job pages</a></nav></header>
+<main>
+<div id="notice" role="status" aria-live="polite">Checking your account…</div>
+<section id="app" hidden>
+  <div class="cp-grid">
+    <form id="add" class="panel" autocomplete="off">
+      <div class="eyebrow">New customer login</div>
+      <h2>Add a customer</h2>
+      <p>They sign in at the job page with this email and password. No registration on their end.</p>
+      <label>Name<input id="name" maxlength="120" placeholder="e.g. Rocco, IMB Homes"></label>
+      <label>Email<input id="email" type="email" required placeholder="customer@company.com" autocomplete="off"></label>
+      <label>Password<span class="pwrow"><input id="password" type="password" required minlength="8" maxlength="72" autocomplete="new-password"><button type="button" id="showpw" class="ghost">Show</button></span></label>
+      <div class="hint">At least 8 characters. You'll send it to them yourself.</div>
+      <fieldset><legend>Jobs they can see</legend><div id="jobs" class="jobs"></div></fieldset>
+      <label class="check"><input id="approve" type="checkbox" checked>Can approve BOM and quotes</label>
+      <button class="primary" id="create">Create login</button>
+      <div id="sendbox" class="sendbox" hidden><b>Send this to your customer</b><pre id="sendtext"></pre><button type="button" id="copysend">Copy</button></div>
+    </form>
+    <section class="panel">
+      <div class="cp-head"><div><div class="eyebrow">Customers</div><h2>Who can log in</h2></div><button id="reload" class="ghost">Refresh</button></div>
+      <div id="list"><p class="hint">Loading…</p></div>
+    </section>
+  </div>
+</section>
+</main>
+<script type="module" src="/customers.js"></script>
+</body></html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your job – J&amp;K Home Building Centre</title>
+<script src="/suite-client.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0c0e;--surface:#151619;--raised:#191b1f;--line:#292c31;--soft:#21242a;--ink:#f4f4f5;--sec:#a5a9b1;--mut:#6f747d;--acc:#ff7617;--acc2:#ff8b39;--accs:rgba(255,118,23,.12);--ok:#3fb27f;--warn:#e0a43a;
+ color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#f3f4f6;--surface:#ffffff;--raised:#f7f8fa;--line:#dfe2e6;--soft:#eceef1;--ink:#16181c;--sec:#4f5560;--mut:#7a808a;--accs:rgba(255,118,23,.10);color-scheme:light}}
+:root[data-theme="light"]{--bg:#f3f4f6;--surface:#ffffff;--raised:#f7f8fa;--line:#dfe2e6;--soft:#eceef1;--ink:#16181c;--sec:#4f5560;--mut:#7a808a;color-scheme:light}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,"Segoe UI",Roboto,Arial,sans-serif}
+a{color:var(--acc)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-bottom:1px solid var(--soft);background:var(--surface)}
+.brand{display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:-.01em}
+.mark{width:30px;height:30px;border-radius:7px;background:#d71920;color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700}
+.brand small{display:block;font-weight:500;color:var(--mut);font-size:12px;letter-spacing:0}
+.who{display:flex;align-items:center;gap:10px;color:var(--sec);font-size:13px}
+button,.btn{font:600 14px Inter,Arial,sans-serif;color:var(--ink);background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:8px 13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button:hover,.btn:hover{border-color:var(--mut)}
+button.primary{background:var(--acc);border-color:var(--acc);color:#111}
+button.primary:hover{background:var(--acc2)}
+button:disabled{opacity:.55;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+input,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+main{max-width:1240px;margin:0 auto;padding:22px}
+h1{font-size:28px;line-height:1.15;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:17px;margin:0 0 12px;letter-spacing:-.01em}
+.sub{color:var(--sec);margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin:12px 0 0;color:var(--sec);font-size:14px}
+.meta b{color:var(--ink);font-weight:600}
+.card{background:var(--surface);border:1px solid var(--soft);border-radius:12px;padding:18px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;margin-top:20px}
+.viewer{position:relative;height:min(68vh,640px);min-height:380px;border-radius:12px;overflow:hidden;border:1px solid var(--soft);background:#111317}
+.viewer canvas{display:block;width:100%;height:100%;touch-action:none;outline:none}
+.vbar{position:absolute;left:12px;top:12px;display:flex;flex-wrap:wrap;gap:6px}
+.vbar button{padding:6px 10px;font-size:13px;background:rgba(21,22,25,.86);color:#f4f4f5;border-color:#33363c}
+.readout{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(21,22,25,.9);color:#f4f4f5;border:1px solid #33363c;border-radius:8px;padding:8px 12px;font-size:13.5px;max-width:560px}
+.side{display:flex;flex-direction:column;gap:18px}
+.layer{display:flex;align-items:center;gap:9px;padding:4px 0;font-size:14px;cursor:pointer}
+.layer input{width:16px;height:16px;accent-color:var(--acc)}
+.sw{width:13px;height:13px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.25)}
+.range{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--sec);margin-top:10px}
+.range input{padding:0;accent-color:var(--acc)}
+.hl{display:block;width:100%;text-align:left;background:transparent;border:0;border-left:3px solid var(--line);border-radius:0;padding:7px 0 7px 12px;font-weight:400;color:var(--ink)}
+.hl b{display:block;font-weight:600}
+.hl span{color:var(--sec);font-size:13.5px}
+.hl:hover,.hl.on{border-left-color:var(--acc)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--soft)}
+.row:first-of-type{border-top:0}
+.num{font-variant-numeric:tabular-nums}
+.money{display:grid;grid-template-columns:auto auto;gap:3px 18px;font-size:14px;color:var(--sec);margin:10px 0}
+.money b{color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--accs);color:var(--acc)}
+.pill.ok{background:rgba(63,178,127,.14);color:var(--ok)}
+.pill.warn{background:rgba(224,164,58,.14);color:var(--warn)}
+.lower{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+.staff{margin-top:18px;border-color:rgba(255,118,23,.35)}
+.staff .cols{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.hint{color:var(--mut);font-size:13px}
+.center{min-height:calc(100vh - 70px);display:grid;place-items:center;padding:22px}
+.login{width:min(420px,100%)}
+.login p{color:var(--sec)}
+.stack{display:flex;flex-direction:column;gap:10px}
+[hidden]{display:none!important}
+.err{color:#ff8a7a;font-size:14px}
+.okmsg{color:var(--ok);font-size:14px}
+.list a.job{display:block;padding:14px 0;border-top:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.list a.job:first-child{border-top:0}
+.list a.job span{display:block;color:var(--sec);font-size:13.5px}
+.repcard{display:flex;gap:12px;align-items:center}
+.avatar{width:44px;height:44px;border-radius:50%;background:#d71920;color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
+.repcard b{display:block}.repcard small{color:var(--sec)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.check-list{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:14px}
+.check-list li{display:flex;gap:9px}.check-list li::before{content:"";width:16px;height:16px;flex:none;margin-top:2px;border:2px solid var(--acc);border-radius:4px}
+.stat{font-size:13px;color:var(--sec);margin:6px 0 0}
+.shell{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;max-width:1500px;margin:0 auto;padding:22px}
+.shell>main{max-width:none;margin:0;padding:0;min-width:0}
+.tree{position:sticky;top:16px;align-self:start;background:var(--surface);border:1px solid var(--soft);border-radius:12px;padding:14px 10px;max-height:calc(100vh - 32px);overflow:auto}
+.tree h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:2px 8px 10px}
+.tree ul{list-style:none;margin:0;padding:0}
+.tree a{display:block;color:var(--ink);text-decoration:none;border-radius:7px;padding:7px 8px;font-size:14px;line-height:1.3}
+.tree a:hover{background:var(--raised)}
+.tree .job>a{font-weight:600;display:flex;gap:7px;align-items:flex-start}
+.tree .job>a::before{content:"\25B8";color:var(--mut);font-size:11px;margin-top:3px}
+.tree .job.on>a{background:var(--accs);color:var(--acc)}
+.tree .job.on>a::before{content:"\25BE";color:var(--acc)}
+.tree .job small{display:block;font-weight:400;color:var(--sec);font-size:12px}
+.tree .kids{margin:2px 0 8px 18px;border-left:1px solid var(--line);padding-left:6px}
+.tree .kids a{font-size:13.5px;color:var(--sec);padding:5px 8px}
+.tree .kids a:hover{color:var(--ink)}
+.jobpick{display:none;margin-bottom:12px}
+.jobpick select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+@media (max-width:1000px){.shell{grid-template-columns:1fr;padding:14px}.tree{display:none}.jobpick{display:block}}
+@media print{.tree,.jobpick{display:none!important}.shell{display:block;padding:0}}
+.rep{margin-top:18px}
+.rep .rsec{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 22px;margin-bottom:6px}
+.rep h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--acc);margin:14px 0 6px}
+.rep dl{margin:0;display:grid;grid-template-columns:120px 1fr;gap:4px 12px;font-size:14px}
+.rep dt{color:var(--mut)}.rep dd{margin:0}
+.rep table{width:100%;border-collapse:collapse;font-size:14px}
+.rep th{text-align:left;font-size:12px;color:var(--mut);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line)}
+.rep td{padding:6px 8px;border-bottom:1px solid var(--soft)}
+.rep td.q{width:60px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}.rep td.u{width:50px;color:var(--sec)}
+.rep tr.sec td{font-weight:600;color:var(--ink);background:var(--raised)}
+.rephead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+@media print{body{background:#fff;color:#000}.top,.grid,.lower,.staff,.meta,.dchk,main>h1,main>.sub,.noprint{display:none!important}.card{border:0;padding:0;background:#fff}.rep th,.rep td,.rep dt{color:#000}.rep tr.sec td{background:#eee}#printhead{display:block!important}}
+@media (max-width:900px){.grid,.lower,.staff .cols{grid-template-columns:1fr}.viewer{height:56vh}main{padding:14px}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><div class="mark" aria-hidden="true">J&amp;K</div><div>J&amp;K Home Building Centre<small>Customer job portal</small></div></div>
+  <div class="who" id="who"></div>
+</header>
+<div id="root"><div class="center"><p class="sub">Loading your job…</p></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="/forgeModel3d.js"></script>
+<link rel="stylesheet" href="/bom-review.css">
+<script type="module">
+import {renderBomReview} from "/bom-review.js";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.112.4';
+const URL_='https://uyqanhwurngoupmvzxrh.supabase.co', KEY='sb_publishable_SquKrj848EoO9NHZknVkSA_k8CKD7WQ';
+const sb=createClient(URL_,KEY,{auth:window.ForgeSuite?.auth||{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const root=document.getElementById('root'), who=document.getElementById('who');
+const h=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>n==null?'—':Number(n).toLocaleString('en-CA',{style:'currency',currency:'CAD'});
+const date=d=>d?new Date(d+(String(d).length===10?'T12:00:00':'')).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'}):'—';
+const params=new URLSearchParams(location.search); let projectId=params.get('p');
+let me=null, staff=null;
+
+async function start(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session) return showLogin();
+  me=session.user;
+  try{ await sb.rpc('portal_claim_invites'); }catch(e){}
+  const {data:mem}=await sb.from('organization_memberships').select('organization_id,role,status').eq('user_id',me.id).eq('status','active').limit(1);
+  staff=mem&&mem[0]||null;
+  who.innerHTML=`<span>${h(me.email)}</span><button id="out">Sign out</button>`;
+  document.getElementById('out').onclick=async()=>{await sb.auth.signOut();location.href=location.pathname+(projectId?'?p='+projectId:'');};
+  if(projectId) return showJob(projectId);
+  return showList();
+}
+
+function showLogin(){
+  root.innerHTML=`<div class="center"><div class="card login">
+   <h1>View your job</h1><p>Sign in with the email and password your J&amp;K rep gave you.</p>
+   <div class="stack" id="step1"><label for="em" class="hint">Email</label><input id="em" type="email" autocomplete="email" placeholder="you@company.com"><label for="pw" class="hint">Password</label><input id="pw" type="password" autocomplete="current-password"><button class="primary" id="pwin">Sign in</button><button id="send">Email me a sign-in link instead</button><p class="hint">Your J&amp;K rep set up your login. Forgot your password? Call 519-753-3114 ext. 112.</p></div>
+   <div class="stack" id="step2" hidden><p>Check your inbox and click the sign-in link. It brings you right back to this job. If your email shows a 6-digit code instead, type it below.</p><label for="code" class="hint">6-digit code</label><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10"><button class="primary" id="verify">Sign in</button><button id="back">Use a different email</button></div>
+   <p class="err" id="lerr" role="alert"></p>
+   <p class="hint" style="margin-top:18px">J&amp;K staff: <a href="#" id="staffin">sign in with Forge</a></p></div></div>`;
+  const em=document.getElementById('em'), err=document.getElementById('lerr');
+  document.getElementById('send').onclick=async()=>{ err.textContent=''; const email=em.value.trim(); if(!email) return err.textContent='Enter your email.';
+    const b=document.getElementById('send'); b.disabled=true; b.textContent='Sending…';
+    const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:'https://app.forgehub.dev/account.html?returnTo='+encodeURIComponent(location.href),shouldCreateUser:true}});
+    b.disabled=false; b.textContent='Email me a sign-in link instead';
+    if(error) return err.textContent='Sign-in email could not be sent: '+error.message;
+    document.getElementById('step1').hidden=true; document.getElementById('step2').hidden=false; document.getElementById('code').focus(); };
+  const pwin=async()=>{ err.textContent=''; const email=em.value.trim(), password=document.getElementById('pw').value; if(!email||!password) return err.textContent='Enter your email and password.';
+    const b=document.getElementById('pwin'); b.disabled=true; b.textContent='Signing in…';
+    const {error}=await sb.auth.signInWithPassword({email,password}); b.disabled=false; b.textContent='Sign in';
+    if(error) return err.textContent=/invalid/i.test(error.message)?'Email or password is wrong.':error.message; start(); };
+  document.getElementById('pwin').onclick=pwin; document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')pwin();});
+  document.getElementById('verify').onclick=async()=>{ err.textContent=''; const {error}=await sb.auth.verifyOtp({email:em.value.trim(),token:document.getElementById('code').value.trim(),type:'email'});
+    if(error) return err.textContent='That code didn\'t work: '+error.message+'. Request a new one.'; start(); };
+  document.getElementById('back').onclick=()=>{document.getElementById('step1').hidden=false;document.getElementById('step2').hidden=true;};
+  document.getElementById('staffin').onclick=async e=>{e.preventDefault(); if(window.ForgeSuite){ await window.ForgeSuite.connect(sb); start(); }};
+}
+
+async function showList(){
+  const {data,error}=await sb.from('projects').select('id,name,address,status,updated_at,metadata->portal->>delivery').order('updated_at',{ascending:false}).limit(60);
+  const rows=(data||[]).filter(p=>!staff||true);
+  if(!staff&&rows.length===1){ location.replace('?p='+rows[0].id); return; }
+  root.innerHTML=`<main><h1>${staff?'Customer job pages':'Your jobs'}</h1><p class="sub">${staff?'Open a job to share it with a customer.':'Jobs your J&K rep has shared with you.'}</p>
+   <div class="card list" style="margin-top:18px">${error?`<p class="err">${h(error.message)}</p>`:rows.length?rows.map(p=>`<a class="job" href="?p=${p.id}">${h(p.name)}<span>${h(p.address?.line1||'')} ${h(p.address?.city||'')}</span></a>`).join(''):'<p class="sub">No jobs have been shared with this email yet. Ask your J&K rep to share your job, then sign in again.</p>'}</div></main>`;
+}
+
+async function showJob(id){
+  const {data:p,error}=await sb.from('projects').select('id,organization_id,customer_id,name,address,status,metadata').eq('id',id).maybeSingle();
+  if(error||!p){ root.innerHTML=`<div class="center"><div class="card login"><h1>This job isn't shared with you</h1><p class="sub">You're signed in as ${h(me.email)}. Ask your J&amp;K rep to share the job with this email, then reload this page.</p><p><a href="?">See your jobs</a></p></div></div>`; return; }
+  let reviewData=null,reviewError=null;
+  try { const review=await sb.rpc('portal_get_bom_review',{p_project:id}); reviewData=review.data;reviewError=review.error?.message; } catch(e){reviewError=e.message;}
+  const portal=reviewData?.portal||p.metadata?.portal||{};
+  const [{data:quotes},{data:docs},{data:grants},{data:resp}]=await Promise.all([
+    sb.from('quotes').select('id,quote_number,title,status,subtotal,tax,total,quote_date,expiry_date').eq('project_id',id).order('quote_date',{ascending:false}),
+    sb.from('documents').select('id,title,original_filename,document_type,storage_bucket,storage_path,created_at').eq('project_id',id).order('created_at',{ascending:false}),
+    sb.from('portal_access_grants').select('id,user_id,invite_email,status,can_approve,created_at').eq('project_id',id),
+    sb.from('portal_quote_responses').select('id,quote_id,user_id,response,note,created_at').eq('project_id',id).order('created_at',{ascending:false})]);
+  const myGrant=(grants||[]).find(g=>g.user_id===me.id&&g.status==='active');
+  const canApprove=!!myGrant?.can_approve;
+  document.title=p.name+' – J&K Home Building Centre';
+  const addr=[p.address?.line1,p.address?.city,p.address?.province].filter(Boolean).join(', ');
+  const {data:alljobs}=await sb.from('projects').select('id,name,address,status,updated_at').order('updated_at',{ascending:false}).limit(100);
+  const jobs=(alljobs||[]).filter(j=>staff?true:true);
+  const kids=[['viewer','3D model'],['report','Scope & bill of materials'],['checklist','Delivery day checklist'],['quotes','Quotes'],['docs','Documents']].filter(k=>k[0]!=='report'||portal.report);
+  const treeHtml=`<aside class="tree" aria-label="Your jobs"><h2>${staff?'Jobs':'Your jobs'} (${jobs.length})</h2><ul>${jobs.map(j=>{const on=j.id===p.id;return `<li class="job${on?' on':''}"><a href="?p=${j.id}" ${on?'aria-current="page"':''}><span>${h(j.name)}<small>${h([j.address?.line1,j.address?.city].filter(Boolean).join(', ')||j.status||'')}</small></span></a>${on?`<div class="kids">${kids.map(k=>`<a href="#${k[0]}">${k[1]}</a>`).join('')}</div>`:''}</li>`;}).join('')}</ul></aside>`;
+  const pickHtml=jobs.length>1?`<div class="jobpick"><label class="hint" for="jp">Switch job</label><select id="jp">${jobs.map(j=>`<option value="${j.id}" ${j.id===p.id?'selected':''}>${h(j.name)}</option>`).join('')}</select></div>`:'';
+  const rp=portal.rep||{};
+  const repName=rp.name||'Rob Flagg';
+  root.innerHTML=`<div class="shell">${treeHtml}<main>${pickHtml}
+   <h1>${h(p.name)}</h1><p class="sub">${h(portal.summary||'')}</p>
+   <div class="meta">${addr?`<span>Site <b>${h(addr)}</b></span>`:''}${portal.delivery?`<span>Delivery <b>${h(portal.delivery)}</b></span>`:''}<span>Status <b>${h(p.status||'active')}</b></span></div>
+   <div class="grid">
+    <div><div class="viewer" id="viewer">${portal.model?'<canvas id="cv" tabindex="0" aria-label="3D framing model. Drag to rotate, scroll or pinch to zoom, right-drag or two fingers to pan."></canvas>':'<div class="center" style="min-height:100%"><p class="sub">No saved 3D model is available for this job yet.</p></div>'}
+      <div class="vbar" id="vbar"></div><div class="readout" id="ro">Drag to rotate. Click any piece to see what it is.</div></div></div>
+    <div class="side">
+     <div class="card"><h2>Your J&amp;K rep</h2><div class="repcard"><div class="avatar" aria-hidden="true">${h(repName.split(' ').map(x=>x[0]).join(''))}</div><div><b>${h(repName)}</b><small>${h(rp.title||'Contractor Sales, J&K Home Building Centre')}</small></div></div>
+      <div class="btnrow"><a class="btn" href="tel:${h(rp.tel||'+15197533114,112')}">Call ${h(rp.phone||'519-753-3114 x112')}</a><a class="btn" href="mailto:${h(rp.email||'r.flagg@homehardware.ca')}?subject=${encodeURIComponent(p.name)}">Email</a></div></div>
+     ${(portal.highlights||[]).length?`<div class="card"><h2>Walk through your package</h2><div id="hls"></div></div>`:''}
+     <div class="card"><h2>Show and hide</h2><div id="layers"></div><div class="range"><span>Spread floors</span><input id="ex" type="range" min="0" max="6" step="0.1" value="0" aria-label="Spread floors apart"></div></div>
+    </div>
+   </div>
+   ${portal.report?`<div class="card rep" id="report"><div id="printhead" style="display:none"><b>J&amp;K Home Building Centre</b>, 116 King George Rd, Brantford ON, 519-753-3114<br>${h(p.name)}</div><div class="rephead"><div><h2 style="margin-bottom:2px">${h(portal.report.title||'Scope of work')}</h2><p class="hint">${h(portal.report.source||'')}${portal.report.delivery?' · '+h(portal.report.delivery):''}</p></div><button class="noprint" onclick="window.print()">Print / save PDF</button></div>
+     <div class="rsec">${(portal.report.sections||[]).map(sec=>`<div><h3>${h(sec.h)}</h3><dl>${(sec.rows||[]).map(r=>`<dt>${h(r[0])}</dt><dd>${h(r[1])}</dd>`).join('')}</dl></div>`).join('')}</div>
+     ${(portal.report.bom||[]).length?`<h3>Bill of materials</h3><table><thead><tr><th style="text-align:right">Qty</th><th>Unit</th><th>Item</th></tr></thead><tbody>${portal.report.bom.map(g=>`<tr class="sec"><td colspan="3">${h(g.section)}</td></tr>`+g.items.map(i=>`<tr><td class="q">${h(i[0])}</td><td class="u">${h(i[1])}</td><td>${h(i[2])}</td></tr>`).join('')).join('')}</tbody></table>`:''}</div>`:''}
+   <div class="card dchk" id="checklist" style="margin-top:18px"><h2>Delivery day checklist</h2><p class="hint" style="margin:-6px 0 12px">${h(portal.delivery||'Your rep will confirm the delivery date.')}</p><ul class="check-list">${(portal.checklist||['Clear, firm access for a boom truck (about 10 ft wide, no low wires or branches)','Drop zone marked and flat, close to the work area','Driveway and street parking clear on delivery morning','Someone on site to check the load and sign the delivery slip','Tarps or dunnage ready if lumber will sit more than a few days','Count against the delivery list on this page and call your rep within 24 hours if anything is short']).map(x=>`<li>${h(x)}</li>`).join('')}</ul></div>
+   <div class="lower">
+    <div class="card" id="quotesCard"><h2>Quotes</h2><div id="quotes"></div></div>
+    <div class="card"><h2>Documents</h2><div id="docs"></div></div>
+   </div>
+   ${staff?`<div class="card staff"><h2>Rep tools (customers don't see this)</h2><div class="cols">
+     <div><h2 style="font-size:15px">Share this job</h2><div class="stack"><input id="shEmail" type="email" placeholder="customer@email.com" aria-label="Customer email"><label class="layer"><input type="checkbox" id="shApprove" checked>Can approve BOM and quotes</label><button class="primary" id="shBtn">Share job</button><button id="copy">Copy customer link</button><p class="hint" id="shMsg">The customer signs in with this email and lands on this page. To give them a password, use Customer Logins.</p><a href="/customers.html">Open Customer Logins</a></div><div id="grants" style="margin-top:12px"></div></div>
+     <div><h2 style="font-size:15px">Add a document</h2><div class="stack"><input id="docTitle" placeholder="Title, e.g. Quote 28-965104" aria-label="Document title"><input id="docFile" type="file" accept=".pdf,.png,.jpg,.jpeg,.glb" aria-label="File"><button id="docBtn">Upload</button><p class="hint" id="docMsg">PDF quotes, plans or photos. Visible to anyone this job is shared with.</p></div>
+       <h2 style="font-size:15px;margin-top:18px">Customer responses</h2><div id="resp"></div></div></div></div>`:''}
+  </main></div>`;
+  const jp=document.getElementById('jp'); if(jp) jp.onchange=()=>{location.href='?p='+jp.value;};
+
+  renderBomReview({sb,projectId:id,data:reviewData,error:reviewError});
+  // 3D
+  try {
+  if(portal.model&&window.ForgeModel3D){
+    const ro=document.getElementById('ro');
+    const m=ForgeModel3D.mount(document.getElementById('cv'),portal.model,{onPick:l=>ro.innerHTML=l?'<b>'+h(l)+'</b>':'Nothing there. Click a piece of the framing.'});
+    const vb=document.getElementById('vbar');
+    [['iso','3D'],['front','Front'],['side','Side'],['stair','Stair wall'],['top','Top']].forEach(([k,l])=>{const b=document.createElement('button');b.textContent=l;b.onclick=()=>m.view(k);vb.appendChild(b);});
+    const lw=document.getElementById('layers');
+    const sync=()=>lw.querySelectorAll('input').forEach(i=>i.checked=m.isVisible(i.dataset.k));
+    m.layers.forEach(l=>{const lab=document.createElement('label');lab.className='layer';lab.innerHTML=`<input type="checkbox" data-k="${l.key}" ${l.visible?'checked':''}><span class="sw" style="background:${l.color}"></span>${h(l.label)}`;lab.querySelector('input').onchange=e=>m.setLayer(l.key,e.target.checked);lw.appendChild(lab);});
+    const ex=document.getElementById('ex'); ex.oninput=()=>m.explode(+ex.value);
+    const hw=document.getElementById('hls');
+    if(hw)(portal.highlights||[]).forEach((x,i)=>{const b=document.createElement('button');b.className='hl';b.innerHTML=`<b>${h(x.title)}</b><span>${h(x.body)}</span>`;
+      b.onclick=()=>{hw.querySelectorAll('.hl').forEach(e=>e.classList.remove('on'));b.classList.add('on');
+        if(x.layers) m.layers.forEach(l=>m.setLayer(l.key,x.layers.includes(l.key))); sync();
+        ex.value=x.explode||0; m.explode(+ex.value); m.view(x.view||'iso'); ro.innerHTML='<b>'+h(x.title)+'</b> '+h(x.body);};
+      hw.appendChild(b);});
+  }
+
+  } catch(e) {
+    document.getElementById('ro').textContent='The 3D viewer could not load. Your saved BOM and customer review remain available below.';
+    console.error('3D viewer:',e);
+  }
+  // quotes
+  const qEl=document.getElementById('quotes');
+  const respFor=q=>(resp||[]).filter(r=>r.quote_id===q.id);
+  qEl.innerHTML=(quotes||[]).length?quotes.map(q=>{const rs=respFor(q), last=rs[0];
+    const st=last?(last.response==='approved'?'<span class="pill ok">Approved</span>':last.response==='changes_requested'?'<span class="pill warn">Changes requested</span>':'<span class="pill">Declined</span>'):'<span class="pill">'+h(q.status||'open')+'</span>';
+    return `<div class="row" style="display:block"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><div><b>${h(q.quote_number)}</b> <span class="hint">${h(q.title||'')}</span></div>${st}</div>
+     <div class="money"><span>Items</span><b>${money(q.subtotal)}</b><span>HST</span><b>${money(q.tax)}</b><span>Total</span><b>${money(q.total)}</b><span>Quoted</span><b>${date(q.quote_date)}</b>${q.expiry_date?`<span>Prices valid until</span><b>${date(q.expiry_date)}</b>`:''}</div>
+     ${last?`<p class="hint">${last.response==='approved'?'Approved':'Response'} ${date(last.created_at.slice(0,10))}${last.note?': '+h(last.note):''}</p>`:''}
+     ${canApprove&&!staff?`<div class="stack"><textarea id="n-${q.id}" rows="2" placeholder="Optional note to your rep" aria-label="Note"></textarea><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="primary" data-q="${q.id}" data-r="approved">Approve quote</button><button data-q="${q.id}" data-r="changes_requested">Request changes</button></div></div>`:''}</div>`;}).join(''):'<p class="sub">No quotes on this job yet.</p>';
+  qEl.querySelectorAll('button[data-q]').forEach(b=>b.onclick=async()=>{ b.disabled=true;
+    const {error}=await sb.from('portal_quote_responses').insert({organization_id:p.organization_id,project_id:p.id,quote_id:b.dataset.q,user_id:me.id,response:b.dataset.r,note:document.getElementById('n-'+b.dataset.q).value.trim()||null});
+    if(error){ b.disabled=false; alert('Could not send: '+error.message); return; } showJob(id); });
+
+  // docs
+  const dEl=document.getElementById('docs');
+  dEl.innerHTML=(docs||[]).length?docs.map(d=>`<div class="row"><div><b>${h(d.title||d.original_filename)}</b><div class="hint">${date(d.created_at.slice(0,10))}</div></div><button data-doc="${d.id}">Open</button></div>`).join(''):'<p class="sub">No documents yet.</p>';
+  dEl.querySelectorAll('button[data-doc]').forEach(b=>b.onclick=async()=>{ const d=docs.find(x=>x.id===b.dataset.doc);
+    const {data,error}=await sb.storage.from(d.storage_bucket).createSignedUrl(d.storage_path,600);
+    if(error) return alert('Could not open: '+error.message); window.open(data.signedUrl,'_blank','noopener'); });
+
+  if(!staff){ sb.rpc('portal_log_view',{p_project:p.id}).then(()=>{},()=>{}); return; }
+  // staff tools
+  const {data:views}=await sb.from('activities').select('title,happened_at').eq('project_id',p.id).eq('activity_type','portal_view').order('happened_at',{ascending:false}).limit(200);
+  const gEl=document.getElementById('grants');
+  gEl.innerHTML=`<p class="stat"><b>Customer views:</b> ${(views||[]).length}${views&&views[0]?` · last ${new Date(views[0].happened_at).toLocaleString('en-CA',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} (${h(views[0].title.replace(' viewed the job page',''))})`:' · not opened yet'}</p><p class="stat">Approvals and change requests also land in your Forge To Do and the CRM activity feed.</p>`+((grants||[]).length?(grants.map(g=>`<div class="row"><div><b>${h(g.invite_email||'Signed-in customer')}</b><div class="hint">${g.status==='active'?(g.user_id?'Signed in':'Invited, not signed in yet'):'Revoked'}${g.can_approve?', can approve':''}</div></div>${g.status==='active'?`<button data-rev="${g.id}">Revoke</button>`:''}</div>`).join('')):'<p class="hint">Not shared with anyone yet.</p>');
+  gEl.querySelectorAll('button[data-rev]').forEach(b=>b.onclick=async()=>{ await sb.from('portal_access_grants').update({status:'revoked',updated_at:new Date().toISOString()}).eq('id',b.dataset.rev); showJob(id); });
+  document.getElementById('shBtn').onclick=async()=>{ const email=document.getElementById('shEmail').value.trim().toLowerCase(), msg=document.getElementById('shMsg');
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return msg.textContent='Enter a valid email.';
+    const ap=document.getElementById('shApprove').checked;
+    const {error}=await sb.from('portal_access_grants').insert({organization_id:p.organization_id,project_id:p.id,invite_email:email,access_level:ap?'approver':'viewer',can_approve:ap,can_view_quotes:true,can_view_documents:true,created_by:me.id});
+    if(error) return msg.textContent='Could not share: '+error.message;
+    msg.innerHTML='Shared with '+h(email)+'. Send them the customer link.'; setTimeout(()=>showJob(id),900); };
+  document.getElementById('copy').onclick=async()=>{ const link=location.origin+location.pathname+'?p='+p.id; try{await navigator.clipboard.writeText(link);document.getElementById('shMsg').textContent='Link copied: '+link;}catch{prompt('Customer link',link);} };
+  document.getElementById('docBtn').onclick=async()=>{ const f=document.getElementById('docFile').files[0], msg=document.getElementById('docMsg'); if(!f) return msg.textContent='Choose a file first.';
+    msg.textContent='Uploading…'; const path=`${p.organization_id}/${p.id}/${Date.now()}-${f.name.replace(/[^\w.\-]+/g,'_')}`;
+    const up=await sb.storage.from('forge-documents').upload(path,f,{contentType:f.type||'application/octet-stream'}); if(up.error) return msg.textContent='Upload failed: '+up.error.message;
+    const title=document.getElementById('docTitle').value.trim()||f.name;
+    const {error}=await sb.from('documents').insert({organization_id:p.organization_id,project_id:p.id,customer_id:p.customer_id,document_type:/quote/i.test(title)?'quote':'other',title,original_filename:f.name,storage_bucket:'forge-documents',storage_path:path,mime_type:f.type,file_size_bytes:f.size,status:'active',source:'forge-portal',created_by:me.id});
+    if(error) return msg.textContent='Saved file but not the record: '+error.message; showJob(id); };
+  const rEl=document.getElementById('resp');
+  rEl.innerHTML=(resp||[]).length?resp.map(r=>{const q=(quotes||[]).find(x=>x.id===r.quote_id);return `<div class="row"><div><b>${h(r.response.replace('_',' '))}</b> <span class="hint">${h(q?.quote_number||'')}</span><div class="hint">${date(r.created_at.slice(0,10))}${r.note?': '+h(r.note):''}</div></div></div>`;}).join(''):'<p class="hint">No responses yet.</p>';
+}
+start().catch(e=>{root.innerHTML=`<div class="center"><div class="card login"><h1>Something went wrong</h1><p class="err">${h(e.message)}</p><button onclick="location.reload()">Reload</button></div></div>`;});
+</script>
+</body>
+</html>
